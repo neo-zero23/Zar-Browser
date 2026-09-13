@@ -48,6 +48,7 @@
       <span id="ram-text" class="ram-label">0MB</span>
 
       <button id="clean-cache-btn" class="nav-btn clean-btn" title="Liberar memoria RAM">🧹</button>
+      <button id="dl-btn" class="nav-btn" title="Descargas activas">⬇</button>
       <button id="quick-settings-btn" class="nav-btn" title="Menú">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <circle cx="12" cy="5" r="2" />
@@ -101,6 +102,12 @@
       <span class="qs-label">Acerca de Zar</span>
     </div>
   </div>
+
+  <!-- Descargas: dropdown arriba (bajo toolbar), toast abajo. No se solapan. -->
+  <div id="dl-dropdown" class="quick-settings-dropdown hidden" style="top:78px;right:60px">
+    <div id="dl-list"><div class="qs-item">Sin descargas</div></div>
+  </div>
+  <div id="dl-toast" class="quick-settings-dropdown hidden" style="top:auto;bottom:16px;right:16px"></div>
 
   <script src="renderer.js"></script>
 </body>

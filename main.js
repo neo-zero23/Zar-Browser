@@ -1,32 +1,13 @@
 const { app, BrowserWindow, WebContentsView, ipcMain, session, Menu } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const ZarDB = require('./db');
 const { ElectronBlocker } = require('@cliqz/adblocker-electron');
 const fetch = require('cross-fetch');
+const { applyChromiumSwitches } = require('./optimizations');
 
-// =====================================================================
-// ⚡ PERFORMANCE & HARDWARE ACCELERATION SWITCHES
-// =====================================================================
-app.commandLine.appendSwitch('js-flags', '--expose-gc');
-app.commandLine.appendSwitch('renderer-process-limit', '4');
-app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
-app.commandLine.appendSwitch('disable-extensions');
-app.commandLine.appendSwitch('disable-speech-api');
-app.commandLine.appendSwitch('disable-speech-synthesis-api');
-app.commandLine.appendSwitch('disable-print-preview');
-app.commandLine.appendSwitch('disable-component-update');
-app.commandLine.appendSwitch('disable-domain-reliability');
-app.commandLine.appendSwitch('disable-sync');
-app.commandLine.appendSwitch('disable-background-networking');
-app.commandLine.appendSwitch('no-first-run');
-app.commandLine.appendSwitch('no-default-browser-check');
-
-// Hardware video decode & Wayland-friendly GPU rasterization
-app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,VaapiIgnoreDriverChecks');
-app.commandLine.appendSwitch('enable-accelerated-video-decode');
-app.commandLine.appendSwitch('enable-accelerated-2d-canvas');
-app.commandLine.appendSwitch('enable-gpu-rasterization');
-app.commandLine.appendSwitch('enable-zero-copy');
+// Switches centralizados (ver optimizations.js). Llamar antes de ready.
+applyChromiumSwitches(app);
 
 // =====================================================================
 // 🌐 CONSTANTS & STATE
@@ -41,24 +22,39 @@ let activeTabId = null;
 let adBlocker = null;
 
 // =====================================================================
-// 🛡️ AD-BLOCKER (@cliqz/adblocker-electron)
+// 🛡️ AD-BLOCKER (@cliqz/adblocker-electron, caché en disco)
+// NOTA: migración a @ghostery queda para commit separado. @cliqz v1.34 OK.
 // =====================================================================
-function initAdBlocker() {
-  ElectronBlocker.fromLists(fetch, [
-    'https://easylist.to/easylist/easylist.txt',
-    'https://easylist.to/easylist/easyprivacy.txt'
-  ], {
-    enableCompression: true,
-    guessRequestTypeFromUrl: true,
-    loadNetworkFilters: true
-  }).then(blocker => {
+async function initAdBlocker() {
+  try {
+    const cachePath = path.join(app.getPath('userData'), 'adblock-cache.bin');
+    // Refresh cada 7 días: bin viejo -> borrar para forzar re-descarga
+    try {
+      const st = await fs.promises.stat(cachePath);
+      if (Date.now() - st.mtimeMs > 7 * 24 * 60 * 60 * 1000) {
+        await fs.promises.unlink(cachePath);
+      }
+    } catch (e) { /* primera vez, sin caché */ }
+    const blocker = await ElectronBlocker.fromLists(fetch, [
+      'https://easylist.to/easylist/easylist.txt',
+      'https://easylist.to/easylist/easyprivacy.txt'
+    ], {
+      enableCompression: true,
+      guessRequestTypeFromUrl: true,
+      loadNetworkFilters: true
+    }, {
+      path: cachePath,
+      read: fs.promises.readFile,
+      write: fs.promises.writeFile
+    });
     adBlocker = blocker;
-    const sess = session.fromPartition(PARTITION);
-    adBlocker.enableBlockingInSession(sess);
-    adBlocker.enableBlockingInSession(session.defaultSession);
-  }).catch(err => {
-    console.error('[Zar AdBlocker] Error:', err.message);
-  });
+    // Solo partición Zar, NO defaultSession
+    adBlocker.enableBlockingInSession(session.fromPartition(PARTITION));
+    console.log('[Zar AdBlocker] OK');
+  } catch (err) {
+    // Fallback: sin adblock, el arranque sigue
+    console.error('[Zar AdBlocker] sin adblock, sigo:', err.message);
+  }
 }
 
 // =====================================================================
@@ -477,6 +473,67 @@ ipcMain.on('reload', () => {
   }
 });
 
+// Zoom nativo Chromium con niveles estándar enteros (-3..+5).
+// Evita niveles raros tipo 110% que deja el +0.5 flotante.
+function stepZoom(delta) {
+  const wc = getActiveTab()?.view?.webContents;
+  if (!wc || wc.isDestroyed()) return;
+  const cur = Math.round(wc.getZoomLevel());
+  const next = Math.min(5, Math.max(-3, cur + delta));
+  wc.setZoomLevel(next);
+}
+ipcMain.on('zoom-in', () => stepZoom(1));
+ipcMain.on('zoom-out', () => stepZoom(-1));
+ipcMain.on('zoom-reset', () => {
+  const wc = getActiveTab()?.view?.webContents;
+  if (wc && !wc.isDestroyed()) wc.setZoomLevel(0);
+});
+
+ipcMain.on('open-about', () => {
+  createTab('file://' + path.join(__dirname, 'ui', 'about.html'));
+});
+
+// =====================================================================
+// ⬇️ DESCARGAS MÍNIMAS (solo activas, sin historial)
+// =====================================================================
+const activeDownloads = new Map(); // id -> { meta, item }
+function initDownloads() {
+  session.fromPartition(PARTITION).on('will-download', (event, item) => {
+    const id = Date.now().toString();
+    activeDownloads.set(id, {
+      item,
+      meta: { id, name: item.getFilename(), received: 0, total: item.getTotalBytes(), state: 'active' }
+    });
+    item.on('updated', (e, state) => {
+      const d = activeDownloads.get(id);
+      if (d) {
+        d.meta.received = item.getReceivedBytes();
+        d.meta.total = item.getTotalBytes();
+        d.meta.state = state;
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('download-updated', d.meta);
+        }
+      }
+    });
+    item.once('done', (e, state) => {
+      const d = activeDownloads.get(id);
+      if (d) d.meta.state = state;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('download-done', { id, state, name: item.getFilename() });
+      }
+      // Limpieza a los 5s
+      setTimeout(() => activeDownloads.delete(id), 5000);
+    });
+  });
+}
+ipcMain.on('download-cancel', (event, id) => {
+  const d = activeDownloads.get(id);
+  if (d && d.item && !d.item.isDestroyed()) {
+    try { d.item.cancel(); } catch (e) { }
+  }
+  activeDownloads.delete(id);
+});
+
 ipcMain.on('clear-memory', () => {
   if (global.gc) {
     global.gc();
@@ -505,10 +562,16 @@ ipcMain.on('show-context-menu', (event, tabId) => {
 app.whenReady().then(async () => {
   ZarDB.init();
   initAdBlocker();
+  initDownloads();
   createMainWindow();
 
+  // Flag --open-url="https://..." para benchmark/automatización.
+  // Ej: npm start -- --open-url="https://youtube.com"
+  const openArg = process.argv.find(a => a.startsWith('--open-url='));
+  const startUrl = openArg ? openArg.slice('--open-url='.length) : '';
+
   mainWindow.webContents.once('dom-ready', () => {
-    createTab('');
+    createTab(startUrl);
   });
 
   // Periodically send memory metrics

@@ -17,6 +17,13 @@ contextBridge.exposeInMainWorld('api', {
   goBack: () => ipcRenderer.send('go-back'),
   goForward: () => ipcRenderer.send('go-forward'),
   reload: () => ipcRenderer.send('reload'),
+  zoomIn: () => ipcRenderer.send('zoom-in'),
+  zoomOut: () => ipcRenderer.send('zoom-out'),
+  zoomReset: () => ipcRenderer.send('zoom-reset'),
+  openAbout: () => ipcRenderer.send('open-about'),
+
+  // Descargas mínimas
+  cancelDownload: (id) => ipcRenderer.send('download-cancel', id),
 
   // System & DevTools
   clearMemory: () => ipcRenderer.send('clear-memory'),
@@ -38,5 +45,7 @@ contextBridge.exposeInMainWorld('api', {
   onOpenNewTabFromWeb: (cb) => ipcRenderer.on('open-new-tab-from-web', (event, url) => cb(url)),
   onRamUsageUpdated: (cb) => ipcRenderer.on('ram-usage-updated', (event, ramMb) => cb(ramMb)),
   onMemoryCleared: (cb) => ipcRenderer.on('memory-cleared', () => cb()),
-  onFullscreenChanged: (cb) => ipcRenderer.on('fullscreen-changed', (event, isFullscreen) => cb(isFullscreen))
+  onFullscreenChanged: (cb) => ipcRenderer.on('fullscreen-changed', (event, isFullscreen) => cb(isFullscreen)),
+  onDownloadUpdated: (cb) => ipcRenderer.on('download-updated', (event, d) => cb(d)),
+  onDownloadDone: (cb) => ipcRenderer.on('download-done', (event, d) => cb(d))
 });

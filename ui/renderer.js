@@ -359,7 +359,7 @@ quickSettingsDropdown.addEventListener('click', (e) => {
       window.api.toggleDevTools();
       break;
     case 'about':
-      alert('Zar Browser v1.0.0\n\nFilosofía: "Optimization before beauty. Zero customization. Just speed."\n\nNavegador minimalista de ultra-alto rendimiento basado en Electron.');
+      window.api.openAbout();
       break;
   }
 });
@@ -419,6 +419,11 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 
+  // Zoom nativo (niveles estándar enteros en main)
+  if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); window.api.zoomIn(); return; }
+  if ((e.ctrlKey || e.metaKey) && (e.key === '-')) { e.preventDefault(); window.api.zoomOut(); return; }
+  if ((e.ctrlKey || e.metaKey) && (e.key === '0')) { e.preventDefault(); window.api.zoomReset(); return; }
+
   // Alt+Left = Back
   if (e.altKey && e.key === 'ArrowLeft') {
     e.preventDefault();
@@ -436,4 +441,38 @@ window.addEventListener('keydown', (e) => {
 
 window.api.onFullscreenChanged((isFullscreen) => {
   document.body.classList.toggle('fullscreen', isFullscreen);
+});
+
+// =====================================================================
+// ⬇️ 9. DESCARGAS MÍNIMAS (solo activas)
+// =====================================================================
+const dlBtn = document.getElementById('dl-btn');
+const dlDropdown = document.getElementById('dl-dropdown');
+const dlList = document.getElementById('dl-list');
+const dlToast = document.getElementById('dl-toast');
+
+dlBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  dlDropdown.classList.toggle('hidden');
+});
+
+window.api.onDownloadUpdated((d) => {
+  dlDropdown.classList.remove('hidden');
+  const pct = d.total > 0 ? Math.round((d.received / d.total) * 100) : 0;
+  dlList.innerHTML = `<div class="qs-item"><span class="qs-label">${d.name} — ${pct}%</span><button class="tab-close" data-dl="${d.id}" title="Cancelar">✕</button></div>`;
+  const btn = dlList.querySelector('button[data-dl]');
+  if (btn) btn.addEventListener('click', (ev) => { ev.stopPropagation(); window.api.cancelDownload(ev.target.dataset.dl); });
+});
+
+window.api.onDownloadDone(({ id, name, state }) => {
+  dlList.innerHTML = '<div class="qs-item"><span class="qs-label">Sin descargas</span></div>';
+  dlToast.textContent = state === 'completed' ? `✔ ${name}` : `✖ ${name} (${state})`;
+  dlToast.classList.remove('hidden');
+  setTimeout(() => dlToast.classList.add('hidden'), 3000);
+});
+
+document.addEventListener('click', (e) => {
+  if (!dlDropdown.classList.contains('hidden') && !dlDropdown.contains(e.target) && e.target !== dlBtn) {
+    dlDropdown.classList.add('hidden');
+  }
 });

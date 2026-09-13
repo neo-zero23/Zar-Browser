@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; media-src 'self' https:; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+  <title>Zar</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="app-container">
+    <!-- Window Titlebar with Tabs -->
+    <header id="titlebar">
+      <div class="drag-region">
+        <div class="zar-logo" title="Zar Browser">
+          <span class="zar-logo-text">Z<span class="zar-red">A</span>R</span>
+        </div>
+        <div id="tabs-list">
+          <!-- Dynamic tabs injected by renderer.js -->
+        </div>
+        <button id="add-tab-btn" class="titlebar-btn" title="Nueva pestaña (Ctrl+T)">+</button>
+      </div>
+      <div class="window-controls">
+        <button id="win-minimize" class="win-btn" title="Minimizar">—</button>
+        <button id="win-maximize" class="win-btn" title="Maximizar">🗖</button>
+        <button id="win-close" class="win-btn win-btn-close" title="Cerrar">✕</button>
+      </div>
+    </header>
+
+    <!-- Navigation Toolbar -->
+    <div id="toolbar">
+      <button id="nav-back" class="nav-btn" title="Atrás (Alt+Izquierda)">←</button>
+      <button id="nav-forward" class="nav-btn" title="Adelante (Alt+Derecha)">→</button>
+      <button id="nav-reload" class="nav-btn" title="Recargar (Ctrl+R / F5)">↻</button>
+      <button id="nav-home" class="nav-btn" title="Inicio">⌂</button>
+
+      <div id="search-container" class="url-bar-container">
+        <input id="url-input" type="text" placeholder="Buscar o introducir dirección web..." autocomplete="off" spellcheck="false">
+        <div id="loading-progress" class="progress-bar-hidden"></div>
+      </div>
+
+      <div class="ram-meter-container" title="Uso de RAM de Zar">
+        <div id="ram-fill" class="ram-meter-fill"></div>
+      </div>
+      <span id="ram-text" class="ram-label">0MB</span>
+
+      <button id="clean-cache-btn" class="nav-btn clean-btn" title="Liberar memoria RAM">🧹</button>
+      <button id="quick-settings-btn" class="nav-btn" title="Menú">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <circle cx="12" cy="5" r="2" />
+          <circle cx="12" cy="12" r="2" />
+          <circle cx="12" cy="19" r="2" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Main Workspace Container -->
+    <main id="content-container">
+      <!-- Embedded Homepage Overlay -->
+      <div id="homepage-overlay" class="homepage-overlay">
+        <div class="homepage-center">
+          <div class="homepage-logo">
+            <span class="logo-text">Z<span class="logo-accent">A</span>R</span>
+          </div>
+          <div class="homepage-search-box">
+            <input id="homepage-search-input" type="text" placeholder="Buscar en la web o escribir una URL..." autocomplete="off" spellcheck="false" autofocus>
+          </div>
+          <div class="homepage-shortcuts">
+            <a href="#" class="shortcut-item" data-url="https://duckduckgo.com">DuckDuckGo</a>
+            <a href="#" class="shortcut-item" data-url="https://youtube.com">YouTube</a>
+            <a href="#" class="shortcut-item" data-url="https://github.com">GitHub</a>
+            <a href="#" class="shortcut-item" data-url="https://reddit.com">Reddit</a>
+            <a href="#" class="shortcut-item" data-url="https://twitch.tv">Twitch</a>
+          </div>
+        </div>
+      </div>
+      <!-- WebContentsView is mounted dynamically below #toolbar when a tab has a URL -->
+    </main>
+  </div>
+
+  <!-- Minimal Menu Dropdown -->
+  <div id="quick-settings-dropdown" class="quick-settings-dropdown hidden">
+    <div class="qs-item" data-action="new-tab">
+      <span class="qs-icon">➕</span>
+      <span class="qs-label">Nueva pestaña</span>
+    </div>
+    <div class="qs-item" data-action="clear-cache">
+      <span class="qs-icon">🧹</span>
+      <span class="qs-label">Liberar memoria RAM</span>
+    </div>
+    <div class="qs-item" data-action="devtools">
+      <span class="qs-icon">🛠️</span>
+      <span class="qs-label">Herramientas de desarrollo</span>
+    </div>
+    <div class="qs-divider"></div>
+    <div class="qs-item" data-action="about">
+      <span class="qs-icon">⚡</span>
+      <span class="qs-label">Acerca de Zar</span>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+
+</html>

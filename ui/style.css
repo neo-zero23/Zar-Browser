@@ -1,0 +1,505 @@
+/* =====================================================================
+   ⚡ ZAR BROWSER — CORE DESIGN SYSTEM & STYLING
+   "Optimization before beauty. Zero customization. Just speed."
+   ===================================================================== */
+
+:root {
+  --bg-main: #0a0a0a;
+  --bg-toolbar: #121212;
+  --bg-titlebar: #161616;
+  --border-color: rgba(255, 255, 255, 0.07);
+
+  --accent-red: #e63946;
+  --accent-red-hover: #ff4d5e;
+  --accent-red-glow: rgba(230, 57, 70, 0.35);
+
+  --text-primary: #ededed;
+  --text-muted: #8e8e93;
+
+  --tab-inactive: #181818;
+  --tab-active: #121212;
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+#app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* =====================================================================
+   🪟 1. TITLEBAR & TABS (Height: 38px)
+   ===================================================================== */
+#titlebar {
+  height: 38px;
+  background: var(--bg-titlebar);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 50;
+}
+
+.drag-region {
+  flex: 1;
+  height: 100%;
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  overflow: hidden;
+}
+
+.zar-logo {
+  margin-right: 12px;
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  cursor: default;
+}
+
+.zar-red {
+  color: var(--accent-red);
+}
+
+#tabs-list {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: 100%;
+  -webkit-app-region: no-drag;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#tabs-list::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-item {
+  height: 32px;
+  min-width: 130px;
+  max-width: 200px;
+  background-color: var(--tab-inactive);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.tab-item:hover {
+  background-color: #202020;
+  color: var(--text-primary);
+}
+
+.tab-item.active {
+  background-color: var(--tab-active);
+  color: var(--text-primary);
+  border-top: 2px solid var(--accent-red);
+  font-weight: 600;
+}
+
+.tab-item.discarded {
+  opacity: 0.45;
+}
+
+.tab-favicon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  margin-right: 6px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tab-favicon.loaded {
+  opacity: 1;
+}
+
+.tab-title-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.tab-pin {
+  display: none;
+  font-size: 10px;
+  margin-right: 4px;
+}
+
+.tab-item.pinned .tab-pin {
+  display: inline;
+}
+
+.tab-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+.tab-close:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.tab-item.pinned .tab-close {
+  display: none;
+}
+
+.titlebar-btn {
+  -webkit-app-region: no-drag;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.titlebar-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.window-controls {
+  -webkit-app-region: no-drag;
+  display: flex;
+  height: 100%;
+}
+
+.win-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 44px;
+  height: 100%;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.1s ease;
+}
+
+.win-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.win-btn-close:hover {
+  background-color: var(--accent-red) !important;
+  color: #fff !important;
+}
+
+/* =====================================================================
+   🧭 2. NAVIGATION TOOLBAR (Height: 40px)
+   ===================================================================== */
+#toolbar {
+  height: 40px;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 6px;
+  z-index: 40;
+}
+
+.nav-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.nav-btn:active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.url-bar-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#url-input {
+  width: 100%;
+  height: 30px;
+  background: #181818;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  padding: 0 12px;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+#url-input:focus {
+  border-color: var(--accent-red);
+  background: #141414;
+}
+
+#loading-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--accent-red);
+  transition: width 0.2s ease, opacity 0.2s ease;
+}
+
+.progress-bar-hidden {
+  opacity: 0;
+  width: 0;
+}
+
+.progress-bar-loading {
+  opacity: 1;
+}
+
+/* RAM Meter */
+.ram-meter-container {
+  width: 8px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.ram-meter-fill {
+  width: 100%;
+  background: var(--accent-red);
+  transition: height 0.4s ease;
+}
+
+.ram-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 46px;
+  font-variant-numeric: tabular-nums;
+}
+
+.clean-btn {
+  font-size: 12px;
+}
+
+/* =====================================================================
+   🏠 3. CONTENT AREA & HOMEPAGE OVERLAY
+   ===================================================================== */
+#content-container {
+  flex: 1;
+  position: relative;
+  background: var(--bg-main);
+  overflow: hidden;
+}
+
+.homepage-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.homepage-overlay.hidden {
+  display: none !important;
+}
+
+.homepage-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 620px;
+  padding: 20px;
+}
+
+.homepage-logo {
+  margin-bottom: 30px;
+}
+
+.homepage-logo .logo-text {
+  font-size: 64px;
+  font-weight: 900;
+  letter-spacing: 8px;
+  color: #ffffff;
+  cursor: default;
+}
+
+.homepage-logo .logo-accent {
+  color: var(--accent-red);
+  text-shadow: 0 0 24px var(--accent-red-glow);
+}
+
+.homepage-search-box {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+#homepage-search-input {
+  width: 100%;
+  height: 48px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  color: #ffffff;
+  font-size: 15px;
+  font-family: var(--font-ui);
+  padding: 0 22px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#homepage-search-input:focus {
+  border-color: var(--accent-red);
+  box-shadow: 0 0 0 2px var(--accent-red-glow);
+}
+
+.homepage-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.shortcut-item {
+  display: inline-flex;
+  align-items: center;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 7px 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.shortcut-item:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+  background: #1c1c1c;
+}
+
+/* =====================================================================
+   ⚙️ 4. QUICK MENU DROPDOWN
+   ===================================================================== */
+.quick-settings-dropdown {
+  position: absolute;
+  top: 78px;
+  right: 12px;
+  width: 220px;
+  background: #161616;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px;
+  z-index: 100;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+}
+
+.quick-settings-dropdown.hidden {
+  display: none;
+}
+
+.qs-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: background-color 0.1s ease;
+}
+
+.qs-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.qs-icon {
+  font-size: 14px;
+}
+
+.qs-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 5px 0;
+}
+
+/* Fullscreen adjustments */
+body.fullscreen #titlebar {
+  display: none;
+}

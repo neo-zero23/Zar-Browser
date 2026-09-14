@@ -29,7 +29,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y fakeroot dpkg rpm ruby ruby-dev
+          sudo apt-get install -y fakeroot dpkg rpm ruby ruby-dev libarchive-tools zstd
           sudo gem install fpm
 
       - run: npm ci

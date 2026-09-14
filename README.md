@@ -52,7 +52,7 @@ Measure with `./benchmark.sh` (see file for the procedure).
 * Favorites: NO (fixed tab or .txt).
 
 ## Compile
-
+```
 npm ci
 npm start # dev
 npm run build:linux # .deb .rpm .pacman in dist/

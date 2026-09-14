@@ -5,39 +5,56 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist:linux": "electron-packager . \"Zar Browser\" --platform=linux --arch=x64 --icon=assets/new-logo-256.png --out=dist --overwrite --asar",
-    "dist:appimage": "electron-builder --linux AppImage"
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --linux"
   },
   "build": {
     "appId": "com.zar.browser",
     "productName": "Zar Browser",
-    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "directories": {
-      "output": "dist"
-    },
-    "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "icon": "assets/new-logo-256.png",
-      "category": "Network;WebBrowser",
-      "maintainer": "Zar Team",
-      "description": "Zar Browser — Fast, minimal and ultra-optimized browser",
-      "desktop": {
-        "Name": "Zar Browser",
-        "Comment": "Fast, minimal and ultra-optimized browser",
-        "MimeType": "x-scheme-handler/http;x-scheme-handler/https;text/html",
-        "Categories": "Network;WebBrowser"
-      }
+      "output": "dist",
+      "buildResources": "assets"
     },
     "files": [
       "main.js",
       "preload.js",
+      "optimizations.js",
       "db.js",
       "ui/**/*",
       "assets/**/*",
       "package.json"
-    ]
+    ],
+    "asar": true,
+    "compression": "maximum",
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Zar Browser",
+      "artifactName": "Zar-Browser-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        { "target": "deb", "arch": ["x64"] },
+        { "target": "rpm", "arch": ["x64"] },
+        { "target": "pacman", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.png",
+      "category": "Network",
+      "synopsis": "Navegador minimalista basado en Electron",
+      "description": "Zar Browser: optimizacion antes de belleza.",
+      "maintainer": "Zar",
+      "vendor": "Zar",
+      "artifactName": "zar-browser-${version}.${ext}"
+    }
   },
   "keywords": [
     "browser",

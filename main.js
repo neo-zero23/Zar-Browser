@@ -126,6 +126,52 @@ function getActiveTab() {
 }
 
 // =====================================================================
+// 💾 SESIÓN (restaura tabs al abrir, silencioso, solo última sesión)
+// =====================================================================
+function sessionPath() {
+  return path.join(app.getPath('userData'), 'zar-session.json');
+}
+
+function isSessionUrl(u) {
+  return !!u && (u.startsWith('http://') || u.startsWith('https://') || u.startsWith('file://'));
+}
+
+function tabSessionData(t) {
+  // Si está descartada, tab.url ya es about:blank -> usar la guardada
+  const url = (t.discarded && t.savedUrl) ? t.savedUrl : t.url;
+  const title = (t.discarded && t.savedTitle) ? t.savedTitle : t.title;
+  return isSessionUrl(url) ? { url, title: title || url } : null;
+}
+
+function saveSession() {
+  try {
+    const real = tabs.map(tabSessionData).filter(Boolean);
+    // Solo homepage -> nada que guardar (borra resto anterior)
+    if (real.length === 0) {
+      try { fs.unlinkSync(sessionPath()); } catch (e) { }
+      return;
+    }
+    const realIds = tabs.filter(t => tabSessionData(t)).map(t => t.id);
+    const activeIndex = Math.max(0, realIds.indexOf(activeTabId));
+    fs.writeFileSync(sessionPath(), JSON.stringify({ tabs: real, activeIndex }));
+  } catch (e) { }
+}
+
+function loadSession() {
+  try {
+    const s = JSON.parse(fs.readFileSync(sessionPath(), 'utf8'));
+    if (!s || !Array.isArray(s.tabs) || s.tabs.length === 0) return null;
+    const clean = s.tabs.filter(t => t && isSessionUrl(t.url));
+    if (clean.length === 0) return null;
+    const n = clean.length;
+    const ai = (typeof s.activeIndex === 'number') ? Math.min(Math.max(0, s.activeIndex), n - 1) : 0;
+    return { tabs: clean, activeIndex: ai };
+  } catch (e) {
+    return null; // no existe o corrupto -> homepage
+  }
+}
+
+// =====================================================================
 // 📑 TAB MANAGEMENT
 // =====================================================================
 function createTab(initialUrl = '') {
@@ -308,6 +354,7 @@ function closeTab(tabId) {
   }
 
   tabs.splice(index, 1);
+  saveSession(); // guarda tras cada cierre (por si crashea)
 
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('tab-closed', { tabId });
@@ -732,7 +779,26 @@ app.whenReady().then(async () => {
   const startUrl = openArg ? openArg.slice('--open-url='.length) : '';
 
   mainWindow.webContents.once('dom-ready', () => {
-    createTab(startUrl);
+    // --open-url manda (benchmark); si no, sesión; si no, homepage
+    if (startUrl) {
+      createTab(startUrl);
+      return;
+    }
+    const sess = loadSession();
+    if (sess) {
+      const base = tabs.length;
+      sess.tabs.forEach(t => {
+        const id = createTab(t.url);
+        const tb = tabs.find(x => x.id === id);
+        if (tb && t.title) {
+          tb.title = t.title;
+          mainWindow.webContents.send('tab-title-changed', { tabId: id, title: t.title });
+        }
+      });
+      switchTab(tabs[base + sess.activeIndex].id);
+    } else {
+      createTab('');
+    }
   });
 }).catch(err => {
   console.error('[Zar] Startup error:', err);
@@ -743,3 +809,5 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+app.on('before-quit', () => saveSession());

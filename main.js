@@ -193,6 +193,7 @@ function createTab(initialUrl = '') {
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('tab-url-changed', { tabId, url: navUrl });
       }
+      sendNavState(tabId);
     }
   });
 
@@ -213,6 +214,7 @@ function createTab(initialUrl = '') {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('tab-loading-finished', { tabId });
     }
+    sendNavState(tabId);
     if (!wc.isDestroyed()) {
       const currentUrl = wc.getURL();
       const currentTitle = wc.getTitle();
@@ -288,6 +290,7 @@ function switchTab(tabId) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('tab-switched', { tabId, url: tab.url, title: tab.title });
   }
+  sendNavState(tabId);
 }
 
 function closeTab(tabId) {
@@ -409,6 +412,50 @@ ipcMain.on('create-tab', (event, url) => createTab(url));
 ipcMain.on('switch-tab', (event, tabId) => switchTab(tabId));
 ipcMain.on('close-tab', (event, tabId) => closeTab(tabId));
 
+// =====================================================================
+// 🔍 MOTOR DE BÚSQUEDA (5 máx, persiste en zar-settings.json)
+// =====================================================================
+const SEARCH_ENGINES = {
+  duckduckgo: { name: 'DuckDuckGo', initial: 'D', url: 'https://duckduckgo.com/?q=' },
+  google: { name: 'Google', initial: 'G', url: 'https://www.google.com/search?q=' },
+  brave: { name: 'Brave', initial: 'B', url: 'https://search.brave.com/search?q=' },
+  startpage: { name: 'Startpage', initial: 'S', url: 'https://www.startpage.com/sp/search?query=' },
+  // SearXNG no tiene instancia oficial; searx.be es la pública clásica.
+  // Si muere, cambia la URL aquí (a futuro: campo editable, hoy no).
+  searxng: { name: 'SearXNG', initial: 'X', url: 'https://searx.be/search?q=' }
+};
+const DEFAULT_ENGINE = 'duckduckgo';
+let searchEngine = DEFAULT_ENGINE;
+
+function settingsPath() {
+  // En Linux resuelve a ~/.config/zar-browser/zar-settings.json
+  return path.join(app.getPath('userData'), 'zar-settings.json');
+}
+
+function loadSearchSettings() {
+  try {
+    const id = JSON.parse(fs.readFileSync(settingsPath(), 'utf8')).searchEngine;
+    if (id && SEARCH_ENGINES[id]) searchEngine = id;
+  } catch (e) { /* primera vez: default */ }
+}
+
+function engineUrl(id) {
+  return (SEARCH_ENGINES[id] || SEARCH_ENGINES[DEFAULT_ENGINE]).url;
+}
+
+ipcMain.handle('get-search-engine', () => searchEngine);
+
+ipcMain.on('set-search-engine', (event, id) => {
+  if (!id || !SEARCH_ENGINES[id]) return;
+  searchEngine = id;
+  try {
+    fs.writeFileSync(settingsPath(), JSON.stringify({ searchEngine }, null, 2));
+  } catch (e) { }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('search-engine-changed', searchEngine);
+  }
+});
+
 ipcMain.on('navigate-to', (event, input) => {
   const tab = getActiveTab();
   if (!tab || !tab.view || tab.view.webContents.isDestroyed()) return;
@@ -421,7 +468,7 @@ ipcMain.on('navigate-to', (event, input) => {
   } else if (targetUrl.includes('.') && !targetUrl.includes(' ')) {
     targetUrl = 'https://' + targetUrl;
   } else {
-    targetUrl = `https://duckduckgo.com/?q=${encodeURIComponent(targetUrl)}`;
+    targetUrl = `${engineUrl(searchEngine)}${encodeURIComponent(targetUrl)}`;
   }
 
   tab.url = targetUrl;
@@ -460,17 +507,34 @@ ipcMain.on('go-home', () => {
 
 ipcMain.on('go-back', () => {
   const tab = getActiveTab();
-  if (tab?.view?.webContents && !tab.view.webContents.isDestroyed()) {
-    tab.view.webContents.goBack();
+  const wc = tab?.view?.webContents;
+  // webContents.goBack() deprecado -> navigationHistory (verificado 2026)
+  if (wc && !wc.isDestroyed() && wc.navigationHistory.canGoBack()) {
+    wc.navigationHistory.goBack();
   }
 });
 
 ipcMain.on('go-forward', () => {
   const tab = getActiveTab();
-  if (tab?.view?.webContents && !tab.view.webContents.isDestroyed()) {
-    tab.view.webContents.goForward();
+  const wc = tab?.view?.webContents;
+  if (wc && !wc.isDestroyed() && wc.navigationHistory.canGoForward()) {
+    wc.navigationHistory.goForward();
   }
 });
+
+// Estado para habilitar/deshabilitar ← → (solo pinta la tab activa)
+function sendNavState(tabId) {
+  if (tabId !== activeTabId) return;
+  const tab = tabs.find(t => t.id === tabId);
+  const wc = tab?.view?.webContents;
+  if (!wc || wc.isDestroyed()) return;
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('nav-state-changed', {
+      canGoBack: wc.navigationHistory.canGoBack(),
+      canGoForward: wc.navigationHistory.canGoForward()
+    });
+  }
+}
 
 ipcMain.on('reload', () => {
   const tab = getActiveTab();
@@ -657,6 +721,7 @@ ipcMain.on('show-context-menu', (event, tabId) => {
 // =====================================================================
 app.whenReady().then(async () => {
   ZarDB.init();
+  loadSearchSettings();
   initAdBlocker();
   initDownloads();
   createMainWindow();

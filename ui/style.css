@@ -324,6 +324,29 @@ body {
   font-size: 12px;
 }
 
+/* Botones nav sin historial */
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* Selector de motor (reusa .quick-settings-dropdown) */
+.engine-btn {
+  font-weight: 800;
+  font-size: 14px;
+}
+
+#engine-dropdown {
+  top: 78px;
+  left: 146px;
+  right: auto;
+  width: 190px;
+}
+
+#engine-dropdown .qs-item.active {
+  background-color: rgba(230, 57, 70, 0.15);
+}
+
 /* Anillo de progreso del botón ⬇ (estilo Brave, solo UX, sin features) */
 #dl-btn {
   position: relative;

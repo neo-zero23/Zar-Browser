@@ -27,6 +27,10 @@ contextBridge.exposeInMainWorld('api', {
   closeDownloadPopup: () => ipcRenderer.send('close-download-popup'),
   cancelDownload: (id) => ipcRenderer.send('download-cancel', id),
 
+  // Motor de búsqueda
+  getSearchEngine: () => ipcRenderer.invoke('get-search-engine'),
+  setSearchEngine: (id) => ipcRenderer.send('set-search-engine', id),
+
   // System & DevTools
   clearMemory: () => ipcRenderer.send('clear-memory'),
   toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),
@@ -47,6 +51,8 @@ contextBridge.exposeInMainWorld('api', {
   onOpenNewTabFromWeb: (cb) => ipcRenderer.on('open-new-tab-from-web', (event, url) => cb(url)),
   onMemoryCleared: (cb) => ipcRenderer.on('memory-cleared', () => cb()),
   onFullscreenChanged: (cb) => ipcRenderer.on('fullscreen-changed', (event, isFullscreen) => cb(isFullscreen)),
+  onNavStateChanged: (cb) => ipcRenderer.on('nav-state-changed', (event, s) => cb(s)),
+  onSearchEngineChanged: (cb) => ipcRenderer.on('search-engine-changed', (event, id) => cb(id)),
   onDownloadUpdated: (cb) => ipcRenderer.on('download-updated', (event, d) => cb(d)),
   onDownloadDone: (cb) => ipcRenderer.on('download-done', (event, d) => cb(d)),
   onDownloadList: (cb) => ipcRenderer.on('download-list', (event, list) => cb(list))

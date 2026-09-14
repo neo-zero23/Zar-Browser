@@ -37,6 +37,15 @@
       <button id="nav-reload" class="nav-btn" title="Recargar (Ctrl+R / F5)">↻</button>
       <button id="nav-home" class="nav-btn" title="Inicio">⌂</button>
 
+      <button id="engine-btn" class="nav-btn engine-btn" title="Motor de búsqueda">D</button>
+      <div id="engine-dropdown" class="quick-settings-dropdown hidden">
+        <div class="qs-item" data-engine="duckduckgo"><span class="qs-icon">D</span><span class="qs-label">DuckDuckGo</span></div>
+        <div class="qs-item" data-engine="google"><span class="qs-icon">G</span><span class="qs-label">Google</span></div>
+        <div class="qs-item" data-engine="brave"><span class="qs-icon">B</span><span class="qs-label">Brave</span></div>
+        <div class="qs-item" data-engine="startpage"><span class="qs-icon">S</span><span class="qs-label">Startpage</span></div>
+        <div class="qs-item" data-engine="searxng"><span class="qs-icon">X</span><span class="qs-label">SearXNG</span></div>
+      </div>
+
       <div id="search-container" class="url-bar-container">
         <input id="url-input" type="text" placeholder="Buscar o introducir dirección web..." autocomplete="off" spellcheck="false">
         <div id="loading-progress" class="progress-bar-hidden"></div>

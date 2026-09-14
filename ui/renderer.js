@@ -45,6 +45,14 @@ navForward.addEventListener('click', () => window.api.goForward());
 navReload.addEventListener('click', () => window.api.reload());
 navHome.addEventListener('click', () => window.api.goHome());
 
+// ← → se atenúan sin historial (main valida con canGoBack/canGoForward)
+navBack.disabled = true;
+navForward.disabled = true;
+window.api.onNavStateChanged(({ canGoBack, canGoForward }) => {
+  navBack.disabled = !canGoBack;
+  navForward.disabled = !canGoForward;
+});
+
 function navigate(rawInput) {
   const query = (rawInput || '').trim();
   if (query) {
@@ -452,4 +460,39 @@ window.api.onDownloadUpdated((d) => {
 window.api.onDownloadDone(() => {
   dlRingCircle.style.strokeDashoffset = '0';
   setTimeout(() => dlRing.classList.add('hidden'), 3000);
+});
+
+// =====================================================================
+// 🔍 10. SELECTOR DE MOTOR (D=DDG default, G, B, S, X)
+// =====================================================================
+const engineBtn = document.getElementById('engine-btn');
+const engineDropdown = document.getElementById('engine-dropdown');
+const ENGINE_INITIALS = { duckduckgo: 'D', google: 'G', brave: 'B', startpage: 'S', searxng: 'X' };
+
+function paintEngine(id) {
+  engineBtn.textContent = ENGINE_INITIALS[id] || 'D';
+  engineDropdown.querySelectorAll('.qs-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.engine === id);
+  });
+}
+
+engineBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  engineDropdown.classList.toggle('hidden');
+});
+
+engineDropdown.addEventListener('click', (e) => {
+  const item = e.target.closest('.qs-item');
+  if (!item) return;
+  engineDropdown.classList.add('hidden');
+  window.api.setSearchEngine(item.dataset.engine);
+});
+
+window.api.onSearchEngineChanged((id) => paintEngine(id));
+window.api.getSearchEngine().then((id) => paintEngine(id)).catch(() => paintEngine('duckduckgo'));
+
+document.addEventListener('click', (e) => {
+  if (!engineDropdown.classList.contains('hidden') && !engineDropdown.contains(e.target) && e.target !== engineBtn) {
+    engineDropdown.classList.add('hidden');
+  }
 });

@@ -573,16 +573,6 @@ app.whenReady().then(async () => {
   mainWindow.webContents.once('dom-ready', () => {
     createTab(startUrl);
   });
-
-  // Periodically send memory metrics
-  setInterval(() => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      const metrics = app.getAppMetrics();
-      const totalMemoryKb = metrics.reduce((sum, m) => sum + (m.memory.privateBytes || m.memory.workingSetSize), 0);
-      const totalMemoryMb = Math.round(totalMemoryKb / 1024);
-      mainWindow.webContents.send('ram-usage-updated', totalMemoryMb);
-    }
-  }, 2000);
 }).catch(err => {
   console.error('[Zar] Startup error:', err);
 });

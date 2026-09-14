@@ -22,8 +22,6 @@ const loadingProgress = document.getElementById('loading-progress');
 const addTabBtn = document.getElementById('add-tab-btn');
 const tabsList = document.getElementById('tabs-list');
 
-const ramFill = document.getElementById('ram-fill');
-const ramText = document.getElementById('ram-text');
 const cleanCacheBtn = document.getElementById('clean-cache-btn');
 
 const quickSettingsBtn = document.getElementById('quick-settings-btn');
@@ -308,20 +306,8 @@ window.api.onOpenNewTabFromWeb((url) => {
 });
 
 // =====================================================================
-// ⚡ 6. RAM METER & MEMORY PURGE
+// ⚡ 6. MEMORY PURGE (sin meter; KDE Monitor hace eso mejor)
 // =====================================================================
-window.api.onRamUsageUpdated((ramMb) => {
-  ramText.textContent = `${ramMb}MB`;
-  const percent = Math.min(Math.round((ramMb / 1500) * 100), 100);
-  ramFill.style.height = `${percent}%`;
-
-  if (ramMb > 1000) {
-    ramFill.style.background = 'var(--accent-red)';
-  } else {
-    ramFill.style.background = 'var(--accent-red-glow)';
-  }
-});
-
 cleanCacheBtn.addEventListener('click', () => {
   window.api.clearMemory();
 });

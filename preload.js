@@ -43,7 +43,6 @@ contextBridge.exposeInMainWorld('api', {
   onTabDiscarded: (cb) => ipcRenderer.on('tab-discarded', (event, data) => cb(data)),
   onTabRestored: (cb) => ipcRenderer.on('tab-restored', (event, data) => cb(data)),
   onOpenNewTabFromWeb: (cb) => ipcRenderer.on('open-new-tab-from-web', (event, url) => cb(url)),
-  onRamUsageUpdated: (cb) => ipcRenderer.on('ram-usage-updated', (event, ramMb) => cb(ramMb)),
   onMemoryCleared: (cb) => ipcRenderer.on('memory-cleared', () => cb()),
   onFullscreenChanged: (cb) => ipcRenderer.on('fullscreen-changed', (event, isFullscreen) => cb(isFullscreen)),
   onDownloadUpdated: (cb) => ipcRenderer.on('download-updated', (event, d) => cb(d)),

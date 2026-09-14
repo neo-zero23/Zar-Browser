@@ -320,31 +320,6 @@ body {
   opacity: 1;
 }
 
-/* RAM Meter */
-.ram-meter-container {
-  width: 8px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 2px;
-  overflow: hidden;
-  position: relative;
-  display: flex;
-  flex-direction: column-reverse;
-}
-
-.ram-meter-fill {
-  width: 100%;
-  background: var(--accent-red);
-  transition: height 0.4s ease;
-}
-
-.ram-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  min-width: 46px;
-  font-variant-numeric: tabular-nums;
-}
-
 .clean-btn {
   font-size: 12px;
 }

@@ -70,7 +70,7 @@ function createMainWindow() {
     minHeight: 500,
     frame: false,
     backgroundColor: '#0a0a0a',
-    icon: path.join(__dirname, 'assets', 'new-logo-256.png'),
+    icon: path.join(__dirname, 'assets', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

@@ -37,7 +37,7 @@ function applyChromiumSwitches(app) {
 
   // --- GPU / video Intel Wayland (medio riesgo, alto premio en Alder Lake-N) ---
   // DnsOverHttps va concatenado aquí (mismo appendSwitch, no separado).
-  sw.appendSwitch('enable-features', 'VaapiVideoDecoder,AcceleratedVideoDecodeLinuxGL,AcceleratedVideoDecodeLinuxZeroCopyGL,WaylandLinuxDrmSyncobj,DnsOverHttps');
+  sw.appendSwitch('enable-features', 'DnsOverHttps,VaapiVideoDecoder,AcceleratedVideoDecodeLinuxGL,AcceleratedVideoDecodeLinuxZeroCopyGL,WaylandLinuxDrmSyncobj');
   // VaapiIgnoreDriverChecks comentado: solo activar si VA-API falla (ver chrome://gpu).
   // Para activarlo: añadir ',VaapiIgnoreDriverChecks' a la línea anterior.
   sw.appendSwitch('ignore-gpu-blocklist'); // fuerza GPU aunque esté en blocklist

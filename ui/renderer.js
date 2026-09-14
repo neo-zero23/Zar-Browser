@@ -418,6 +418,20 @@ window.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && (e.key === '-')) { e.preventDefault(); window.api.zoomOut(); return; }
   if ((e.ctrlKey || e.metaKey) && (e.key === '0')) { e.preventDefault(); window.api.zoomReset(); return; }
 
+  // Ctrl+Shift+P = Pin/unpin active tab
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+    e.preventDefault();
+    window.api.togglePin();
+    return;
+  }
+
+  // Ctrl+Tab / Ctrl+Shift+Tab = cycle tabs
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key === 'Tab') {
+    e.preventDefault();
+    window.api.cycleTab(e.shiftKey ? -1 : 1);
+    return;
+  }
+
   // Alt+Left = Back
   if (e.altKey && e.key === 'ArrowLeft') {
     e.preventDefault();

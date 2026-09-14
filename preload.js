@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('api', {
   createTab: (url = '') => ipcRenderer.send('create-tab', url),
   switchTab: (tabId) => ipcRenderer.send('switch-tab', tabId),
   closeTab: (tabId) => ipcRenderer.send('close-tab', tabId),
+  togglePin: () => ipcRenderer.send('toggle-pin'),
+  cycleTab: (dir) => ipcRenderer.send('cycle-tab', dir),
 
   // Navigation
   navigateTo: (url) => ipcRenderer.send('navigate-to', url),

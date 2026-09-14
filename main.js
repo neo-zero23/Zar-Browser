@@ -377,6 +377,17 @@ function toggleTabPin(tabId) {
   }
 }
 
+ipcMain.on('toggle-pin', () => {
+  if (activeTabId) toggleTabPin(activeTabId);
+});
+
+ipcMain.on('cycle-tab', (event, dir) => {
+  if (tabs.length < 2) return;
+  const i = tabs.findIndex(t => t.id === activeTabId);
+  const n = tabs.length;
+  switchTab(tabs[((i < 0 ? 0 : i) + (dir === -1 ? -1 : 1) + n) % n].id);
+});
+
 // =====================================================================
 // 💤 NATIVE TAB DISCARDING (RAM SAVER)
 // =====================================================================

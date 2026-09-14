@@ -51,6 +51,21 @@ Measure with `./benchmark.sh` (see file for the procedure).
 * History: `db.js` exists but is dormant (without UI, without IPC).
 * Favorites: NO (fixed tab or .txt).
 
+## Keyboard Shortcuts
+
+* `Ctrl+T` → new tab
+* `Ctrl+W` → close tab (pinned tabs are protected)
+* `Ctrl+Tab` / `Ctrl+Shift+Tab` → next / previous tab
+* `Ctrl+Shift+P` → pin/unpin active tab (pinned tabs show 📌 and can't be closed)
+* `Ctrl+L` / `Alt+D` → focus omnibox
+* `Ctrl+R` / `F5` → reload
+* `Ctrl++` / `Ctrl+-` / `Ctrl+0` → zoom in / out / reset
+* `Alt+Left` / `Alt+Right` → back / forward
+* `F11` → fullscreen
+* `F12` or `Ctrl+Shift+I` → devtools
+
+Right-click on a tab opens the context menu (pin/unpin, close, new tab).
+
 ## Compile
 ```
 npm ci

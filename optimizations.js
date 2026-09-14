@@ -1,5 +1,14 @@
-// ⚡ Zar — switches Chromium verificados.
-// Llamar ANTES de app.whenReady(). Ver Tarea 3 para fuentes y riesgos.
+/**
+ * Zar Browser - Optimizaciones de Chromium
+ *
+ * Switches aplicados antes de app.whenReady().
+ * Reglas:
+ * - Cada switch debe tener comentario de qué hace y su riesgo.
+ * - Si un switch resulta inútil o rompe algo, se comenta o se quita.
+ * - No añadir switches por moda: solo si aportan algo medible.
+ * - DoH en Electron no engancha con flags (verificado 2026).
+ *   Los flags quedan puestos por si Electron lo soporta en el futuro.
+ */
 function applyChromiumSwitches(app) {
   const sw = app.commandLine;
 
@@ -29,9 +38,8 @@ function applyChromiumSwitches(app) {
   sw.appendSwitch('disable-features', 'Translate,MediaRouter,OptimizationHints,DialMediaRouteProvider,Vulkan,VulkanFromANGLE,DefaultANGLEVulkan');
   sw.appendSwitch('disable-vulkan-surface'); // sin swapchain VK (verificado en gpu/command_buffer/service/gpu_switches.cc)
 
-  // --- DNS sobre HTTPS (Firefox es rápido porque usa DoH por defecto) ---
-  // systemd-resolved 910ms vs Cloudflare 505ms -> DoH recorta el handshake.
-  // Verificar en chrome://net-internals/#dns que el resolver es Cloudflare.
+  // --- DNS sobre HTTPS (reserva: no engancha en Electron hoy, no rompe nada) ---
+  // Verificar en https://1.1.1.1/help que "Using DNS over HTTPS" pase a Yes.
   sw.appendSwitch('dns-over-https-mode', 'secure'); // OJO: sin fallback a DNS sistema; si Cloudflare cae, no hay DNS
   sw.appendSwitch('dns-over-https-templates', 'https://cloudflare-dns.com/dns-query');
 
@@ -52,11 +60,9 @@ function applyChromiumSwitches(app) {
   // NOTA: --no-zygote solo si confirmas bug electron#50455 (gpu-process 60%+).
   // Descomenta para probar: sw.appendSwitch('no-zygote'); // +100ms spawn por proceso
   // Forzar backend GL vía ANGLE: Vulkan nunca se inicializa y el warning
-  // 'wayland is not compatible with Vulkan' desaparece de raíz. Es la receta
-  // oficial de VA-API en Linux/OpenGL (vaapi.md) y combina con
-  // AcceleratedVideoDecodeLinuxGL de arriba. Si Video Decode cae a software,
-  // comentar estas 2 líneas para volver atrás.
-  sw.appendSwitch('use-gl', 'angle');
+  // 'wayland is not compatible with Vulkan' desaparece de raíz.
+  // (--use-gl eliminado: deprecado desde Chromium 116, ya no hace nada.)
+  // Si Video Decode cae a software en chrome://gpu, comentar la línea de abajo.
   sw.appendSwitch('use-angle', 'gl');
 
   // --- Recursos (medio riesgo) ---
@@ -64,7 +70,7 @@ function applyChromiumSwitches(app) {
   sw.appendSwitch('disk-cache-size', '52428800'); // 50MB disco
   // NO por defecto (alto/medio riesgo): process-per-site, enable-low-end-device-mode, disable-back-forward-cache
 
-  console.log('[Zar] 26 switches aplicados');
+  console.log('[Zar] 25 switches aplicados');
 }
 
 module.exports = { applyChromiumSwitches };

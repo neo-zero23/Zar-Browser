@@ -86,6 +86,7 @@ function createMainWindow() {
     if (tab && tab.view && isWebviewVisible(tab)) {
       updateViewBounds(tab.view);
     }
+    updateBubbleBounds();
   });
 
   mainWindow.on('enter-full-screen', () => {
@@ -282,6 +283,8 @@ function switchTab(tabId) {
     }
   });
 
+  ensureBubbleOnTop();
+
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('tab-switched', { tabId, url: tab.url, title: tab.title });
   }
@@ -430,6 +433,7 @@ ipcMain.on('navigate-to', (event, input) => {
     tab.view.webContents.loadURL(targetUrl);
     tab.view.webContents.focus();
   } catch (e) { }
+  ensureBubbleOnTop();
 
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('tab-url-changed', { tabId: tab.id, url: targetUrl });
@@ -497,65 +501,95 @@ ipcMain.on('open-about', () => {
 
 // =====================================================================
 // ⬇️ DESCARGAS MÍNIMAS (solo activas, sin historial)
-// UI en popup nativo (ui/download-popup.html): el dropdown HTML quedaba
-// DETRÁS del WebContentsView (capa nativa siempre encima del renderer).
+// Copiado de Brave/Chromium (bubble anclado DENTRO de la ventana):
+// - brave-core: DownloadToolbarButtonView + DownloadBubbleUIController.
+//   El bubble NO es una ventana del SO, es un panel anclado al botón ⬇
+//   del toolbar que se auto-abre al iniciar una descarga.
+// - Aquí igual: un WebContentsView de 300x260 anclado arriba-derecha
+//   (y=TOP_OFFSET). La ventana BrowserWindow anterior fallaba porque en
+//   Wayland el compositor (KWin) ignora x/y y centra todo (docs Electron
+//   "platform notices" + issues #48833/#52204). Dentro de la ventana las
+//   coordenadas sí son exactas.
 // =====================================================================
+const DL_BUBBLE_W = 300;
+const DL_BUBBLE_H = 260;
 const activeDownloads = new Map(); // id -> { meta, item }
-let dlPopup = null;
+let dlBubble = null; // WebContentsView del bubble
+let dlBubbleVisible = false;
+
+function dlSnapshot() {
+  return [...activeDownloads.values()].map(d => d.meta);
+}
 
 function sendToDlUI(channel, data) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send(channel, data);
   }
-  if (dlPopup && !dlPopup.isDestroyed()) {
-    dlPopup.webContents.send(channel, data);
+  if (dlBubbleVisible && dlBubble && !dlBubble.webContents.isDestroyed()) {
+    dlBubble.webContents.send(channel, data);
   }
 }
 
-function openDownloadPopup() {
-  // Toggle: si ya está abierto, ciérralo
-  if (dlPopup && !dlPopup.isDestroyed()) {
-    dlPopup.close();
-    return;
-  }
+function updateBubbleBounds() {
+  if (!dlBubble || !mainWindow || mainWindow.isDestroyed()) return;
+  const bounds = mainWindow.getContentBounds();
+  dlBubble.setBounds({
+    x: Math.max(0, bounds.width - DL_BUBBLE_W - 12),
+    y: TOP_OFFSET,
+    width: DL_BUBBLE_W,
+    height: DL_BUBBLE_H
+  });
+}
+
+// Las tab views se re-añaden al cambiar/navegar; el bubble va encima.
+function ensureBubbleOnTop() {
+  if (!dlBubbleVisible || !dlBubble || !mainWindow || mainWindow.isDestroyed()) return;
+  if (dlBubble.webContents.isDestroyed()) return;
+  try {
+    mainWindow.contentView.removeChildView(dlBubble);
+    mainWindow.contentView.addChildView(dlBubble);
+    updateBubbleBounds();
+  } catch (e) { }
+}
+
+function showBubble() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
-  // Posición: debajo del botón ⬇ (esquina superior derecha del toolbar)
-  const b = mainWindow.getBounds();
-  const W = 300, H = 260;
-  dlPopup = new BrowserWindow({
-    width: W,
-    height: H,
-    x: Math.round(b.x + b.width - W - 12),
-    y: Math.round(b.y + 78),
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    parent: mainWindow,
-    resizable: false,
-    minimizable: false,
-    maximizable: false,
-    show: false,
-    backgroundColor: '#00000000',
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false
-    }
-  });
-  dlPopup.loadFile(path.join(__dirname, 'ui', 'download-popup.html'));
-  dlPopup.once('ready-to-show', () => {
-    if (dlPopup && !dlPopup.isDestroyed()) {
-      dlPopup.show();
-      // Foto inicial para que no abra vacío ("Sin descargas" si no hay nada)
-      dlPopup.webContents.send('download-list', [...activeDownloads.values()].map(d => d.meta));
-    }
-  });
-  // Auto-cierre al perder foco
-  dlPopup.on('blur', () => {
-    if (dlPopup && !dlPopup.isDestroyed()) dlPopup.close();
-  });
-  dlPopup.on('closed', () => { dlPopup = null; });
+  if (!dlBubble || dlBubble.webContents.isDestroyed()) {
+    dlBubble = new WebContentsView({
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+        contextIsolation: true,
+        nodeIntegration: false,
+        backgroundThrottling: true
+      }
+    });
+    dlBubble.webContents.loadFile(path.join(__dirname, 'ui', 'download-popup.html'));
+    dlBubble.webContents.once('did-finish-load', () => {
+      if (dlBubble && !dlBubble.webContents.isDestroyed()) {
+        dlBubble.webContents.send('download-list', dlSnapshot());
+      }
+    });
+  }
+  dlBubbleVisible = true;
+  try {
+    mainWindow.contentView.addChildView(dlBubble);
+    updateBubbleBounds();
+    // Sin focus: la página sigue recibiendo el teclado (equivale al
+    // ShowInactive de Chromium, no roba foco al auto-abrir).
+    dlBubble.webContents.send('download-list', dlSnapshot());
+  } catch (e) { }
+}
+
+function hideBubble() {
+  dlBubbleVisible = false;
+  if (dlBubble && mainWindow && !mainWindow.isDestroyed()) {
+    try { mainWindow.contentView.removeChildView(dlBubble); } catch (e) { }
+  }
+}
+
+function toggleBubble() {
+  if (dlBubbleVisible) hideBubble();
+  else showBubble();
 }
 
 function initDownloads() {
@@ -581,9 +615,12 @@ function initDownloads() {
       // Limpieza a los 5s
       setTimeout(() => activeDownloads.delete(id), 5000);
     });
+    // Auto-abre el bubble al iniciar (como Brave), sin robar foco
+    showBubble();
   });
 }
-ipcMain.on('open-download-popup', () => openDownloadPopup());
+ipcMain.on('open-download-popup', () => toggleBubble());
+ipcMain.on('close-download-popup', () => hideBubble());
 ipcMain.on('download-cancel', (event, id) => {
   const d = activeDownloads.get(id);
   if (d && d.item && !d.item.isDestroyed()) {

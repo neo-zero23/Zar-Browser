@@ -5,20 +5,29 @@
 <title>Descargas</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  /* Popup nativo: reutiliza .quick-settings-dropdown de style.css */
-  html, body { background: transparent; height: 100%; overflow: hidden; }
+  /* Bubble anclado estilo Brave: tarjeta sólida (las views no son transparentes) */
+  html, body { background: #101010; height: 100%; overflow: hidden; margin: 0; }
   #dl-popup {
     position: static;
     width: 100%;
     height: 100%;
     box-sizing: border-box;
     overflow-y: auto;
+    border-radius: 0;
   }
+  #dl-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px 4px; font-size: 13px; font-weight: 700; }
   #dl-status { color: var(--text-muted); font-size: 12px; padding: 8px 10px; }
+  .dl-row { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+  .dl-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
+  .dl-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .dl-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; width: 100%; }
+  .dl-fill { height: 100%; background: var(--accent-red); transition: width 0.2s ease; }
 </style>
 </head>
 <body>
   <div id="dl-popup" class="quick-settings-dropdown">
+    <div id="dl-head"><span>Descargas</span><button id="dl-close" class="tab-close" title="Cerrar">✕</button></div>
+    <div class="qs-divider"></div>
     <div id="dl-list"><div class="qs-item"><span class="qs-label">Sin descargas</span></div></div>
     <div class="qs-divider"></div>
     <div id="dl-status">Solo descargas activas. Sin historial.</div>
@@ -28,6 +37,8 @@
   const list = document.getElementById('dl-list');
   const status = document.getElementById('dl-status');
   const items = new Map(); // id -> meta
+
+  document.getElementById('dl-close').addEventListener('click', () => window.api.closeDownloadPopup());
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -43,7 +54,7 @@
       const pct = d.total > 0 ? Math.round((d.received / d.total) * 100) : 0;
       const row = document.createElement('div');
       row.className = 'qs-item';
-      row.innerHTML = `<span class="qs-label">${esc(d.name)} — ${pct}%</span><button class="tab-close" title="Cancelar">✕</button>`;
+      row.innerHTML = `<div class="dl-row"><div class="dl-top"><span class="dl-name qs-label">${esc(d.name)} — ${pct}%</span><button class="tab-close" title="Cancelar">✕</button></div><div class="dl-bar"><div class="dl-fill" style="width:${pct}%"></div></div></div>`;
       row.querySelector('button').addEventListener('click', () => window.api.cancelDownload(d.id));
       list.appendChild(row);
     }

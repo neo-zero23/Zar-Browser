@@ -22,8 +22,9 @@ contextBridge.exposeInMainWorld('api', {
   zoomReset: () => ipcRenderer.send('zoom-reset'),
   openAbout: () => ipcRenderer.send('open-about'),
 
-  // Descargas mínimas (UI vive en popup nativo ui/download-popup.html)
+  // Descargas mínimas (UI vive en bubble anclado ui/download-popup.html)
   openDownloadPopup: () => ipcRenderer.send('open-download-popup'),
+  closeDownloadPopup: () => ipcRenderer.send('close-download-popup'),
   cancelDownload: (id) => ipcRenderer.send('download-cancel', id),
 
   // System & DevTools

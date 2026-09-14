@@ -1,63 +1,57 @@
 # ⚡ Zar Browser v1.0.0 (personal, ultra-light)
 
-Fork minimal de Neutron. Filosofía: "Optimization before beauty. Zero customization. Just speed."
+Minimal fork of Neutron. Philosophy: "Optimization before beauty." Zero customization. only speed.
 
-## Estado
+## State
 
-Electron + `WebContentsView` por tab. Sin sidebar, sin perfiles, sin favoritos, sin settings completa, sin onboarding, sin telemetría.
+Electron + `WebContentsView` per tab. Without sidebar, without profiles, without favorites, without complete settings, without onboarding, without telemetry.
 
-## Estructura
+## Structure
 
-```
 zar-browser/
-  main.js          -> ventanas, tabs, discarding 5min, adblock, descargas, sesión, motores
-  preload.js       -> puente mínimo window.api
-  optimizations.js -> 25 switches Chromium (ver cabecera del archivo para reglas)
-  db.js            -> historial mínimo JSON (zar-history.json, dormido: sin UI)
-  ui/index.html    -> titlebar + tabs + toolbar + overlay homepage
-  ui/renderer.js   -> controlador UI
-  ui/style.css     -> design system oscuro + acento rojo
-  ui/about.html    -> página Acerca de
-  ui/download-popup.html -> bubble de descargas (view anclada, estilo Brave)
-  assets/icon.png / icon.ico -> logo (Linux / Windows)
-  benchmark.sh     -> medición manual de RAM idle vs video
-```
+main.js -> windows, tabs, discarding 5min, adblock, downloads, session, engines
+preload.js -> minimum bridge window.api
+optimizations.js -> 25 switches Chromium (see the header of the file for rules)
+db.js -> minimum JSON history (zar-history.json, asleep: no UI)
+ui/index.html -> title bar + tabs + tools bar + home page
+ui/renderer.js -> UI controller
+ui/style.css -> dark design system + red accent
+ui/about.html -> About page
+ui/download-popup.html -> download bubble (anchored view, Brave style)
+assets/icon.png / icon.ico -> logo (Linux / Windows)
+benchmark.sh -> manual measurement of idle RAM vs video
 
-## Hecho
+## Fact
 
-* **Adblock** `@ghostery/adblocker-electron` (EasyList + EasyPrivacy) con caché en disco (`adblock-cache-ghostery.bin`, refresh 7 días). Solo partición `persist:zar`.
-* **Zoom** nativo `Ctrl +/-/0` con niveles estándar (-3..+5).
-* **Descargas**: bubble anclado arriba-derecha dentro de la ventana (en Wayland no se puede posicionar ventanas del SO, por eso es view y no popup), auto-apertura sin robar foco, barra + % + cancelar + anillo de progreso en el botón ⬇ (SVG Material inline).
-* **Motores**: DuckDuckGo (default), Google, Brave, Startpage, SearXNG. Botón con inicial a la izquierda del omnibox, persiste en `zar-settings.json`.
-* **Sesión**: guarda/restaura tabs + activa en `zar-session.json`, silencioso. `--open-url=` manda sobre la sesión (benchmark).
-* **Back/forward** por `navigationHistory` (los `webContents.goBack/goForward` están deprecados); botones se atenúan sin historial.
-* **RAM meter eliminado** (medía mal: 588 vs 155 reales). El Monitor del Sistema hace eso mejor. Quedó solo el purge 🧹.
-* **Packaging**: `build:win` (nsis x64 `.exe`), `build:linux` (`.deb/.rpm/.pacman` x64). Sin AppImage.
+* **Adblock** `@ghostery/adblocker-electron` (EasyList + EasyPrivacy) with disk cache (`adblock-cache-ghostery.bin`, refresh every 7 days). Only partition `persist:zar`.
+* **Native Zoom** `Ctrl +/-/0` with standard levels (-3..+5).
+* **Downloads**: bubble anchored at the top-right within the window (in Wayland, OS windows cannot be positioned, hence it's a view and not a popup), auto-opening without stealing focus, bar + % + cancel + progress ring on the button ⬇ (inline SVG Material).
+* **Engines**: DuckDuckGo (default), Google, Brave, Startpage, SearXNG. Button with initial to the left of the omnibox, persists in `zar-settings.json`.
+* **Session**: saves/restores tabs + activates in `zar-session.json`, silent. `--open-url=` overrides the session (benchmark).
+* **Back/forward** via `navigationHistory` (the `webContents.goBack/goForward` are deprecated); buttons are grayed out without history.
+* **RAM meter removed** The System Monitor does that better. Only the purge 🧹 is left.
+* **Packaging**: `build:win` (nsis x64 `.exe`), `build:linux` (`.deb/.rpm/.pacman` x64). Without AppImage.
 
-## Consumo medido (CachyOS/KDE/Wayland, iGPU Alder Lake-N)
+## Measured consumption (CachyOS/KDE/Wayland, iGPU Alder Lake-N)
 
-* Normal: **~180 MB**
-* Video: **~400-500 MB**
+* Normal: **~180-200 MB**
+* Video: **~400-700 MB**
 
-Medir con `./benchmark.sh` (ver archivo para el procedimiento).
+Measure with `./benchmark.sh` (see file for the procedure).
 
-## Decisiones
+## Decisions
 
-* Historial: `db.js` existe pero dormido (sin UI, sin IPC).
-* Favoritos: NO (tab fija o .txt).
-* Find-in-page: NO (usar buscador del sitio o `window.find()` en DevTools).
-* DoH por flags: NO engancha en Electron (verificado 2026); flags en reserva.
-* Warning Vulkan/Wayland: ruido de probeo, cosmético.
+* History: `db.js` exists but is dormant (without UI, without IPC).
+* Favorites: NO (fixed tab or .txt).
 
-## Compilar
+## Compile
 
-```
 npm ci
-npm start                  # dev
-npm run build:linux        # .deb .rpm .pacman en dist/
-npm run build:win          # .exe (en Windows; en Linux pide Wine)
+npm start # dev
+npm run build:linux # .deb .rpm .pacman in dist/
+npm run build:win # .exe (on Windows; on Linux it requires Wine)
 ```
 
-## Licencia
+## License
 
-Ver `LICENSE`.
+See `LICENSE`.

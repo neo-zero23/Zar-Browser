@@ -64,7 +64,7 @@
     "electron"
   ],
   "author": "neo-zero23 <neo-zero23@users.noreply.github.com>",
-  "license": "ISC",
+  "license": "MPL-2.0",
   "allowScripts": {
     "electron@41.10.7": true
   },

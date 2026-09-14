@@ -2,7 +2,7 @@ const { app, BrowserWindow, WebContentsView, ipcMain, session, Menu } = require(
 const path = require('path');
 const fs = require('fs');
 const ZarDB = require('./db');
-const { ElectronBlocker } = require('@cliqz/adblocker-electron');
+const { ElectronBlocker } = require('@ghostery/adblocker-electron');
 const fetch = require('cross-fetch');
 const { applyChromiumSwitches } = require('./optimizations');
 
@@ -22,12 +22,14 @@ let activeTabId = null;
 let adBlocker = null;
 
 // =====================================================================
-// 🛡️ AD-BLOCKER (@cliqz/adblocker-electron, caché en disco)
-// NOTA: migración a @ghostery queda para commit separado. @cliqz v1.34 OK.
+// 🛡️ AD-BLOCKER (@ghostery/adblocker-electron, caché en disco)
+// API igual que @cliqz (fromLists/fromCached/serialize/deserialize).
+// Caché versionada por nombre: el bin de @cliqz v1 nunca lo lee @ghostery
+// v2 (además deserialize valida ENGINE_VERSION + checksum y regenera solo).
 // =====================================================================
 async function initAdBlocker() {
   try {
-    const cachePath = path.join(app.getPath('userData'), 'adblock-cache.bin');
+    const cachePath = path.join(app.getPath('userData'), 'adblock-cache-ghostery.bin');
     // Refresh cada 7 días: bin viejo -> borrar para forzar re-descarga
     try {
       const st = await fs.promises.stat(cachePath);
@@ -495,8 +497,67 @@ ipcMain.on('open-about', () => {
 
 // =====================================================================
 // ⬇️ DESCARGAS MÍNIMAS (solo activas, sin historial)
+// UI en popup nativo (ui/download-popup.html): el dropdown HTML quedaba
+// DETRÁS del WebContentsView (capa nativa siempre encima del renderer).
 // =====================================================================
 const activeDownloads = new Map(); // id -> { meta, item }
+let dlPopup = null;
+
+function sendToDlUI(channel, data) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, data);
+  }
+  if (dlPopup && !dlPopup.isDestroyed()) {
+    dlPopup.webContents.send(channel, data);
+  }
+}
+
+function openDownloadPopup() {
+  // Toggle: si ya está abierto, ciérralo
+  if (dlPopup && !dlPopup.isDestroyed()) {
+    dlPopup.close();
+    return;
+  }
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  // Posición: debajo del botón ⬇ (esquina superior derecha del toolbar)
+  const b = mainWindow.getBounds();
+  const W = 300, H = 260;
+  dlPopup = new BrowserWindow({
+    width: W,
+    height: H,
+    x: Math.round(b.x + b.width - W - 12),
+    y: Math.round(b.y + 78),
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    parent: mainWindow,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    show: false,
+    backgroundColor: '#00000000',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+  dlPopup.loadFile(path.join(__dirname, 'ui', 'download-popup.html'));
+  dlPopup.once('ready-to-show', () => {
+    if (dlPopup && !dlPopup.isDestroyed()) {
+      dlPopup.show();
+      // Foto inicial para que no abra vacío ("Sin descargas" si no hay nada)
+      dlPopup.webContents.send('download-list', [...activeDownloads.values()].map(d => d.meta));
+    }
+  });
+  // Auto-cierre al perder foco
+  dlPopup.on('blur', () => {
+    if (dlPopup && !dlPopup.isDestroyed()) dlPopup.close();
+  });
+  dlPopup.on('closed', () => { dlPopup = null; });
+}
+
 function initDownloads() {
   session.fromPartition(PARTITION).on('will-download', (event, item) => {
     const id = Date.now().toString();
@@ -510,28 +571,26 @@ function initDownloads() {
         d.meta.received = item.getReceivedBytes();
         d.meta.total = item.getTotalBytes();
         d.meta.state = state;
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('download-updated', d.meta);
-        }
+        sendToDlUI('download-updated', d.meta);
       }
     });
     item.once('done', (e, state) => {
       const d = activeDownloads.get(id);
       if (d) d.meta.state = state;
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('download-done', { id, state, name: item.getFilename() });
-      }
+      sendToDlUI('download-done', { id, state, name: item.getFilename() });
       // Limpieza a los 5s
       setTimeout(() => activeDownloads.delete(id), 5000);
     });
   });
 }
+ipcMain.on('open-download-popup', () => openDownloadPopup());
 ipcMain.on('download-cancel', (event, id) => {
   const d = activeDownloads.get(id);
   if (d && d.item && !d.item.isDestroyed()) {
     try { d.item.cancel(); } catch (e) { }
   }
   activeDownloads.delete(id);
+  sendToDlUI('download-list', [...activeDownloads.values()].map(x => x.meta));
 });
 
 ipcMain.on('clear-memory', () => {

@@ -20,8 +20,11 @@ function applyChromiumSwitches(app) {
   sw.appendSwitch('disable-domain-reliability'); // no reporta a Google
   sw.appendSwitch('disable-breakpad'); // sin dumps
   // NOTA: --expose-gc quitado a pedido (el botón 🧹 usa IPC, no necesita gc expuesto).
-  // Pierdes Cast/Translate nativo (no se usa en Zar):
-  sw.appendSwitch('disable-features', 'Translate,MediaRouter,OptimizationHints,DialMediaRouteProvider');
+  // Pierdes Cast/Translate nativo (no se usa en Zar).
+  // Vulkan desactivado: en Wayland lanzaba warning ('--ozone-platform=wayland'
+  // is not compatible with Vulkan) y Zar no usa WebGPU. Verificar tras el
+  // cambio que VA-API sigue en chrome://gpu (Video Decode: Hardware accelerated).
+  sw.appendSwitch('disable-features', 'Translate,MediaRouter,OptimizationHints,DialMediaRouteProvider,Vulkan');
 
   // --- GPU / video Intel Wayland (medio riesgo, alto premio en Alder Lake-N) ---
   sw.appendSwitch('enable-features', 'VaapiVideoDecoder,AcceleratedVideoDecodeLinuxGL,AcceleratedVideoDecodeLinuxZeroCopyGL,WaylandLinuxDrmSyncobj');

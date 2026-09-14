@@ -430,35 +430,11 @@ window.api.onFullscreenChanged((isFullscreen) => {
 });
 
 // =====================================================================
-// ⬇️ 9. DESCARGAS MÍNIMAS (solo activas)
+// ⬇️ 9. DESCARGAS (botón ⬇ abre popup nativo; la lista vive ahí)
 // =====================================================================
 const dlBtn = document.getElementById('dl-btn');
-const dlDropdown = document.getElementById('dl-dropdown');
-const dlList = document.getElementById('dl-list');
-const dlToast = document.getElementById('dl-toast');
 
 dlBtn.addEventListener('click', (e) => {
   e.stopPropagation();
-  dlDropdown.classList.toggle('hidden');
-});
-
-window.api.onDownloadUpdated((d) => {
-  dlDropdown.classList.remove('hidden');
-  const pct = d.total > 0 ? Math.round((d.received / d.total) * 100) : 0;
-  dlList.innerHTML = `<div class="qs-item"><span class="qs-label">${d.name} — ${pct}%</span><button class="tab-close" data-dl="${d.id}" title="Cancelar">✕</button></div>`;
-  const btn = dlList.querySelector('button[data-dl]');
-  if (btn) btn.addEventListener('click', (ev) => { ev.stopPropagation(); window.api.cancelDownload(ev.target.dataset.dl); });
-});
-
-window.api.onDownloadDone(({ id, name, state }) => {
-  dlList.innerHTML = '<div class="qs-item"><span class="qs-label">Sin descargas</span></div>';
-  dlToast.textContent = state === 'completed' ? `✔ ${name}` : `✖ ${name} (${state})`;
-  dlToast.classList.remove('hidden');
-  setTimeout(() => dlToast.classList.add('hidden'), 3000);
-});
-
-document.addEventListener('click', (e) => {
-  if (!dlDropdown.classList.contains('hidden') && !dlDropdown.contains(e.target) && e.target !== dlBtn) {
-    dlDropdown.classList.add('hidden');
-  }
+  window.api.openDownloadPopup();
 });

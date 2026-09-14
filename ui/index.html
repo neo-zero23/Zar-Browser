@@ -98,12 +98,8 @@
     </div>
   </div>
 
-  <!-- Descargas: dropdown arriba (bajo toolbar), toast abajo. No se solapan. -->
-  <div id="dl-dropdown" class="quick-settings-dropdown hidden" style="top:78px;right:60px">
-    <div id="dl-list"><div class="qs-item">Sin descargas</div></div>
-  </div>
-  <div id="dl-toast" class="quick-settings-dropdown hidden" style="top:auto;bottom:16px;right:16px"></div>
-
+  <!-- Descargas: UI en popup nativo (ver ui/download-popup.html).
+       El dropdown HTML quedaba detrás del WebContentsView. -->
   <script src="renderer.js"></script>
 </body>
 

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Descargas</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Popup nativo: reutiliza .quick-settings-dropdown de style.css */
+  html, body { background: transparent; height: 100%; overflow: hidden; }
+  #dl-popup {
+    position: static;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+  #dl-status { color: var(--text-muted); font-size: 12px; padding: 8px 10px; }
+</style>
+</head>
+<body>
+  <div id="dl-popup" class="quick-settings-dropdown">
+    <div id="dl-list"><div class="qs-item"><span class="qs-label">Sin descargas</span></div></div>
+    <div class="qs-divider"></div>
+    <div id="dl-status">Solo descargas activas. Sin historial.</div>
+  </div>
+<script>
+  // UI del popup de descargas (ventana nativa, por encima del WebContentsView).
+  const list = document.getElementById('dl-list');
+  const status = document.getElementById('dl-status');
+  const items = new Map(); // id -> meta
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function render() {
+    if (items.size === 0) {
+      list.innerHTML = '<div class="qs-item"><span class="qs-label">Sin descargas</span></div>';
+      return;
+    }
+    list.innerHTML = '';
+    for (const d of items.values()) {
+      const pct = d.total > 0 ? Math.round((d.received / d.total) * 100) : 0;
+      const row = document.createElement('div');
+      row.className = 'qs-item';
+      row.innerHTML = `<span class="qs-label">${esc(d.name)} — ${pct}%</span><button class="tab-close" title="Cancelar">✕</button>`;
+      row.querySelector('button').addEventListener('click', () => window.api.cancelDownload(d.id));
+      list.appendChild(row);
+    }
+  }
+
+  window.api.onDownloadList((arr) => {
+    items.clear();
+    for (const d of (arr || [])) items.set(d.id, d);
+    render();
+  });
+
+  window.api.onDownloadUpdated((d) => {
+    items.set(d.id, d);
+    render();
+  });
+
+  window.api.onDownloadDone(({ id, name, state }) => {
+    items.delete(id);
+    render();
+    status.textContent = state === 'completed' ? `✔ ${name}` : `✖ ${name} (${state})`;
+  });
+</script>
+</body>
+</html>

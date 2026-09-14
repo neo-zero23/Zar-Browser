@@ -22,7 +22,8 @@ contextBridge.exposeInMainWorld('api', {
   zoomReset: () => ipcRenderer.send('zoom-reset'),
   openAbout: () => ipcRenderer.send('open-about'),
 
-  // Descargas mínimas
+  // Descargas mínimas (UI vive en popup nativo ui/download-popup.html)
+  openDownloadPopup: () => ipcRenderer.send('open-download-popup'),
   cancelDownload: (id) => ipcRenderer.send('download-cancel', id),
 
   // System & DevTools
@@ -46,5 +47,6 @@ contextBridge.exposeInMainWorld('api', {
   onMemoryCleared: (cb) => ipcRenderer.on('memory-cleared', () => cb()),
   onFullscreenChanged: (cb) => ipcRenderer.on('fullscreen-changed', (event, isFullscreen) => cb(isFullscreen)),
   onDownloadUpdated: (cb) => ipcRenderer.on('download-updated', (event, d) => cb(d)),
-  onDownloadDone: (cb) => ipcRenderer.on('download-done', (event, d) => cb(d))
+  onDownloadDone: (cb) => ipcRenderer.on('download-done', (event, d) => cb(d)),
+  onDownloadList: (cb) => ipcRenderer.on('download-list', (event, list) => cb(list))
 });

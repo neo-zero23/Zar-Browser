@@ -324,6 +324,21 @@ body {
   font-size: 12px;
 }
 
+/* Anillo de progreso del botón ⬇ (estilo Brave, solo UX, sin features) */
+#dl-btn {
+  position: relative;
+}
+
+.dl-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.dl-ring.hidden {
+  display: none;
+}
+
 /* =====================================================================
    🏠 3. CONTENT AREA & HOMEPAGE OVERLAY
    ===================================================================== */

@@ -430,11 +430,26 @@ window.api.onFullscreenChanged((isFullscreen) => {
 });
 
 // =====================================================================
-// ⬇️ 9. DESCARGAS (botón ⬇ abre popup nativo; la lista vive ahí)
+// ⬇️ 9. DESCARGAS (botón ⬇ abre bubble anclado; anillo = progreso)
 // =====================================================================
 const dlBtn = document.getElementById('dl-btn');
+const dlRing = document.getElementById('dl-ring');
+const dlRingCircle = document.getElementById('dl-ring-circle');
+const DL_RING_C = 75.4; // 2πr, r=12
 
 dlBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   window.api.openDownloadPopup();
+});
+
+// Anillo de progreso estilo Brave (los eventos ya llegan a esta ventana)
+window.api.onDownloadUpdated((d) => {
+  const pct = d.total > 0 ? d.received / d.total : 0;
+  dlRingCircle.style.strokeDashoffset = String(DL_RING_C * (1 - Math.min(1, pct)));
+  dlRing.classList.remove('hidden');
+});
+
+window.api.onDownloadDone(() => {
+  dlRingCircle.style.strokeDashoffset = '0';
+  setTimeout(() => dlRing.classList.add('hidden'), 3000);
 });

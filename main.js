@@ -111,6 +111,15 @@ function createMainWindow() {
     }
   });
 
+  // Al volver a la ventana: si la activa quedó descartada, restaurarla.
+  // Sin esto el overlay se queda pegado hasta cambiar de tab a mano.
+  mainWindow.on('focus', () => {
+    const tab = getActiveTab();
+    if (tab && tab.discarded && tab.id === activeTabId) {
+      switchTab(tab.id);
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -243,6 +252,8 @@ function createTab(initialUrl = '') {
 
   wc.on('did-start-navigation', (event, navUrl, isInPlace, isMainFrame) => {
     if (isMainFrame) {
+      // El blank del discarding no debe tocar el estado (conservar url/savedUrl)
+      if (tab.discarded && (!navUrl || navUrl.startsWith('about:'))) return;
       tab.url = navUrl;
       tab.lastActive = Date.now();
       tab.discarded = false;

@@ -410,6 +410,14 @@ body {
 
 .homepage-logo {
   margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.homepage-logo .logo-icon {
+  width: 64px;
+  height: 64px;
 }
 
 .homepage-logo .logo-text {

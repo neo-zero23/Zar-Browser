@@ -352,6 +352,9 @@ quickSettingsDropdown.addEventListener('click', (e) => {
     case 'devtools':
       window.api.toggleDevTools();
       break;
+    case 'settings':
+      window.api.openSettings();
+      break;
     case 'about':
       window.api.openAbout();
       break;

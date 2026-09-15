@@ -1,10 +1,40 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, session, Menu } = require('electron');
+const { app, BrowserWindow, WebContentsView, ipcMain, session, Menu, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const ZarDB = require('./db');
 const { ElectronBlocker } = require('@ghostery/adblocker-electron');
 const fetch = require('cross-fetch');
 const { applyChromiumSwitches } = require('./optimizations');
+
+// Páginas internas zar:// (allowlist: nada fuera de ui/)
+const ZAR_PAGES = {
+  'settings': 'settings.html',
+  'about': 'about.html'
+};
+protocol.registerSchemesAsPrivileged([{
+  scheme: 'zar',
+  privileges: { standard: true, secure: true, supportFetchAPI: true }
+}]);
+
+function registerZarProtocol() {
+  protocol.handle('zar', (req) => {
+    try {
+      const u = new URL(req.url);
+      const host = u.hostname;
+      // zar://settings -> settings.html ; zar://settings/settings.js -> settings.js
+      let file = null;
+      if (ZAR_PAGES[host] && (u.pathname === '/' || u.pathname === '')) {
+        file = ZAR_PAGES[host];
+      } else if (host === 'settings' && u.pathname === '/settings.js') {
+        file = 'settings.js';
+      }
+      if (!file) return new Response('No encontrado', { status: 404 });
+      return net.fetch('file://' + path.join(__dirname, 'ui', file));
+    } catch (e) {
+      return new Response('Error', { status: 500 });
+    }
+  });
+}
 
 // Switches centralizados (ver optimizations.js). Llamar antes de ready.
 applyChromiumSwitches(app);
@@ -143,7 +173,7 @@ function sessionPath() {
 }
 
 function isSessionUrl(u) {
-  return !!u && (u.startsWith('http://') || u.startsWith('https://') || u.startsWith('file://'));
+  return !!u && (u.startsWith('http://') || u.startsWith('https://') || u.startsWith('file://') || u.startsWith('zar://'));
 }
 
 function tabSessionData(t) {
@@ -290,7 +320,7 @@ function createTab(initialUrl = '') {
     return { action: 'deny' };
   });
 
-  if (rawUrl && (rawUrl.startsWith('http://') || rawUrl.startsWith('https://') || rawUrl.startsWith('file://'))) {
+  if (rawUrl && (rawUrl.startsWith('http://') || rawUrl.startsWith('https://') || rawUrl.startsWith('file://') || rawUrl.startsWith('zar://'))) {
     wc.loadURL(rawUrl);
   }
 
@@ -583,7 +613,7 @@ ipcMain.on('set-setting', (event, key, value) => {
 });
 
 ipcMain.on('open-settings', () => {
-  createTab('file://' + path.join(__dirname, 'ui', 'settings.html'));
+  createTab('zar://settings');
 });
 
 ipcMain.on('clear-site-data', async () => {
@@ -615,7 +645,7 @@ ipcMain.on('navigate-to', (event, input) => {
   let targetUrl = (input || '').trim();
   if (!targetUrl) return;
 
-  if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://') || targetUrl.startsWith('file://')) {
+  if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://') || targetUrl.startsWith('file://') || targetUrl.startsWith('zar://')) {
     // Valid scheme
   } else if (targetUrl.includes('.') && !targetUrl.includes(' ')) {
     targetUrl = 'https://' + targetUrl;
@@ -730,7 +760,7 @@ ipcMain.on('zoom-reset', () => {
 });
 
 ipcMain.on('open-about', () => {
-  createTab('file://' + path.join(__dirname, 'ui', 'about.html'));
+  createTab('zar://about');
 });
 
 // =====================================================================
@@ -892,6 +922,7 @@ ipcMain.on('show-context-menu', (event, tabId) => {
 app.whenReady().then(async () => {
   ZarDB.init();
   loadSettings();
+  registerZarProtocol();
   if (settings.adblockEnabled) initAdBlocker();
   applyDiscardingSettings();
   initDownloads();

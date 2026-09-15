@@ -32,21 +32,21 @@ let activeTabId = null;
 let adBlocker = null;
 
 // =====================================================================
-// 🛡️ AD-BLOCKER (@ghostery/adblocker-electron, caché en disco)
+// 🛡️ AD-BLOCKER (@ghostery/adblocker-electron, disk cache)
 // API igual que @cliqz (fromLists/fromCached/serialize/deserialize).
-// Caché versionada por nombre: el bin de @cliqz v1 nunca lo lee @ghostery
-// v2 (además deserialize valida ENGINE_VERSION + checksum y regenera solo).
+// Name-versioned cache: the @cliqz v1 bin is never read by @ghostery
+// v2 (plus deserialize validates ENGINE_VERSION + checksum and regenerates alone).
 // =====================================================================
 async function initAdBlocker() {
   try {
     const cachePath = path.join(app.getPath('userData'), 'adblock-cache-ghostery.bin');
-    // Refresh cada 7 días: bin viejo -> borrar para forzar re-descarga
+    // Refresh every 7 days: old bin -> delete to force re-download
     try {
       const st = await fs.promises.stat(cachePath);
       if (Date.now() - st.mtimeMs > 7 * 24 * 60 * 60 * 1000) {
         await fs.promises.unlink(cachePath);
       }
-    } catch (e) { /* primera vez, sin caché */ }
+    } catch (e) { /* first run, no cache */ }
     const blocker = await ElectronBlocker.fromLists(fetch, [
       'https://easylist.to/easylist/easylist.txt',
       'https://easylist.to/easylist/easyprivacy.txt'
@@ -60,11 +60,11 @@ async function initAdBlocker() {
       write: fs.promises.writeFile
     });
     adBlocker = blocker;
-    // Solo partición Zar, NO defaultSession
+    // Zar partition only, NOT defaultSession
     adBlocker.enableBlockingInSession(session.fromPartition(PARTITION));
     console.log('[Zar AdBlocker] OK');
   } catch (err) {
-    // Fallback: sin adblock, el arranque sigue
+    // Fallback: no adblock, boot continues
     console.error('[Zar AdBlocker] sin adblock, sigo:', err.message);
   }
 }
@@ -136,7 +136,7 @@ function getActiveTab() {
 }
 
 // =====================================================================
-// 💾 SESIÓN (restaura tabs al abrir, silencioso, solo última sesión)
+// 💾 SESSION (restores tabs on open, silent, last session only)
 // =====================================================================
 function sessionPath() {
   return path.join(app.getPath('userData'), 'zar-session.json');
@@ -147,7 +147,7 @@ function isSessionUrl(u) {
 }
 
 function tabSessionData(t) {
-  // Si está descartada, tab.url ya es about:blank -> usar la guardada
+  // If discarded, tab.url is already about:blank -> use the saved one
   const url = (t.discarded && t.savedUrl) ? t.savedUrl : t.url;
   const title = (t.discarded && t.savedTitle) ? t.savedTitle : t.title;
   return isSessionUrl(url) ? { url, title: title || url } : null;
@@ -156,7 +156,7 @@ function tabSessionData(t) {
 function saveSession() {
   try {
     const real = tabs.map(tabSessionData).filter(Boolean);
-    // Solo homepage -> nada que guardar (borra resto anterior)
+    // Homepage only -> nothing to save (deletes previous remainder)
     if (real.length === 0) {
       try { fs.unlinkSync(sessionPath()); } catch (e) { }
       return;
@@ -202,7 +202,7 @@ function createTab(initialUrl = '') {
     id: tabId,
     view,
     url: rawUrl,
-    title: rawUrl ? 'Cargando...' : 'Nueva pestaña',
+    title: rawUrl ? 'Loading...' : 'New tab',
     pinned: false,
     discarded: false,
     savedUrl: null,
@@ -219,24 +219,24 @@ function createTab(initialUrl = '') {
     if (wc.isDestroyed()) return;
     const nav = wc.navigationHistory;
     const template = [
-      ...(nav.canGoBack() ? [{ label: 'Atrás', click: () => !wc.isDestroyed() && nav.goBack() }] : []),
-      ...(nav.canGoForward() ? [{ label: 'Adelante', click: () => !wc.isDestroyed() && nav.goForward() }] : []),
+      ...(nav.canGoBack() ? [{ label: 'Back', click: () => !wc.isDestroyed() && nav.goBack() }] : []),
+      ...(nav.canGoForward() ? [{ label: 'Forward', click: () => !wc.isDestroyed() && nav.goForward() }] : []),
       ...(nav.canGoBack() || nav.canGoForward() ? [{ type: 'separator' }] : []),
-      { label: 'Recargar', click: () => !wc.isDestroyed() && wc.reload() },
+      { label: 'Reload', click: () => !wc.isDestroyed() && wc.reload() },
       { type: 'separator' },
-      { label: 'Copiar', role: 'copy' },
-      { label: 'Pegar', role: 'paste' },
-      { label: 'Seleccionar todo', role: 'selectAll' },
+      { label: 'Copy', role: 'copy' },
+      { label: 'Paste', role: 'paste' },
+      { label: 'Select all', role: 'selectAll' },
       ...(params.mediaType === 'image' ? [
         { type: 'separator' },
-        { label: 'Guardar imagen', click: () => wc.downloadURL(params.srcURL) }
+        { label: 'Save image', click: () => wc.downloadURL(params.srcURL) }
       ] : []),
       ...(params.linkURL ? [
         { type: 'separator' },
-        { label: 'Guardar enlace como...', click: () => wc.downloadURL(params.linkURL) }
+        { label: 'Save link as...', click: () => wc.downloadURL(params.linkURL) }
       ] : []),
       { type: 'separator' },
-      { label: 'Inspeccionar elemento', click: () => !wc.isDestroyed() && wc.inspectElement(params.x, params.y) }
+      { label: 'Inspect element', click: () => !wc.isDestroyed() && wc.inspectElement(params.x, params.y) }
     ];
     Menu.buildFromTemplate(template).popup({ window: mainWindow });
   });
@@ -364,7 +364,7 @@ function closeTab(tabId) {
   }
 
   tabs.splice(index, 1);
-  saveSession(); // guarda tras cada cierre (por si crashea)
+  saveSession(); // saves after every close (in case of crash)
 
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('tab-closed', { tabId });
@@ -449,7 +449,7 @@ function restoreTab(tab) {
   }
 }
 
-// Timer creado por applyDiscardingSettings() en el arranque (respeta settings)
+// Timer created by applyDiscardingSettings() at boot (respects settings)
 
 // =====================================================================
 // 🔌 IPC EVENT HANDLERS
@@ -480,15 +480,15 @@ ipcMain.on('switch-tab', (event, tabId) => switchTab(tabId));
 ipcMain.on('close-tab', (event, tabId) => closeTab(tabId));
 
 // =====================================================================
-// 🔍 MOTOR DE BÚSQUEDA (5 máx, persiste en zar-settings.json)
+// 🔍 SEARCH ENGINE (5 max, persists in zar-settings.json)
 // =====================================================================
 const SEARCH_ENGINES = {
   duckduckgo: { name: 'DuckDuckGo', initial: 'D', url: 'https://duckduckgo.com/?q=' },
   google: { name: 'Google', initial: 'G', url: 'https://www.google.com/search?q=' },
   brave: { name: 'Brave', initial: 'B', url: 'https://search.brave.com/search?q=' },
   startpage: { name: 'Startpage', initial: 'S', url: 'https://www.startpage.com/sp/search?query=' },
-  // SearXNG no tiene instancia oficial; searx.be es la pública clásica.
-  // Si muere, cambia la URL aquí (a futuro: campo editable, hoy no).
+  // SearXNG has no official instance; searx.be is the classic public one.
+  // If it dies, change the URL here (editable field in the future, not today).
   searxng: { name: 'SearXNG', initial: 'X', url: 'https://searx.be/search?q=' }
 };
 const DEFAULT_ENGINE = 'duckduckgo';
@@ -504,7 +504,7 @@ const DEFAULT_SETTINGS = {
 let settings = { ...DEFAULT_SETTINGS };
 
 function settingsPath() {
-  // En Linux resuelve a ~/.config/zar-browser/zar-settings.json
+  // On Linux resolves to ~/.config/zar-browser/zar-settings.json
   return path.join(app.getPath('userData'), 'zar-settings.json');
 }
 
@@ -576,7 +576,7 @@ ipcMain.on('set-setting', (event, key, value) => {
     settings.tabDiscardingTimeout = Math.min(120, Math.max(1, Math.round(t)));
     tabDiscardTimeoutMs = settings.tabDiscardingTimeout * 60 * 1000;
   } else {
-    return; // clave desconocida: se ignora
+    return; // unknown key: ignored
   }
   saveSettings();
   broadcastSettings();
@@ -615,7 +615,7 @@ ipcMain.on('navigate-to', (event, input) => {
   let targetUrl = (input || '').trim();
   if (!targetUrl) return;
 
-  // Alias bonitos: el usuario escribe zar://settings, el sistema carga file://
+  // Pretty aliases: user types zar://settings, system loads file://
   const alias = targetUrl.replace(/\/$/, '');
   if (alias === 'zar://settings' || alias === 'zar://about') {
     targetUrl = 'file://' + path.join(__dirname, 'ui', alias.slice(6) + '.html');
@@ -649,7 +649,7 @@ ipcMain.on('go-home', () => {
   const tab = getActiveTab();
   if (!tab || !tab.view || tab.view.webContents.isDestroyed()) return;
 
-  // Homepage custom: si es URL real, navega; si no, overlay como siempre
+  // Custom homepage: if it's a real URL, navigate; else overlay as always
   const hp = (settings.homepage || '').trim();
   if (hp && (hp.startsWith('http://') || hp.startsWith('https://'))) {
     tab.url = hp;
@@ -668,7 +668,7 @@ ipcMain.on('go-home', () => {
   }
 
   tab.url = '';
-  tab.title = 'Nueva pestaña';
+  tab.title = 'New tab';
 
   try {
     mainWindow.contentView.removeChildView(tab.view);
@@ -677,7 +677,7 @@ ipcMain.on('go-home', () => {
 
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('tab-url-changed', { tabId: tab.id, url: '' });
-    mainWindow.webContents.send('tab-title-changed', { tabId: tab.id, title: 'Nueva pestaña' });
+    mainWindow.webContents.send('tab-title-changed', { tabId: tab.id, title: 'New tab' });
   }
 });
 
@@ -698,7 +698,7 @@ ipcMain.on('go-forward', () => {
   }
 });
 
-// Estado para habilitar/deshabilitar ← → (solo pinta la tab activa)
+// State to enable/disable ← → (only paints the active tab)
 function sendNavState(tabId) {
   if (tabId !== activeTabId) return;
   const tab = tabs.find(t => t.id === tabId);
@@ -719,8 +719,8 @@ ipcMain.on('reload', () => {
   }
 });
 
-// Zoom nativo Chromium con niveles estándar enteros (-3..+5).
-// Evita niveles raros tipo 110% que deja el +0.5 flotante.
+// Native Chromium zoom with standard integer levels (-3..+5).
+// Avoids weird levels like 110% from float +0.5 steps.
 function stepZoom(delta) {
   const wc = getActiveTab()?.view?.webContents;
   if (!wc || wc.isDestroyed()) return;
@@ -740,16 +740,16 @@ ipcMain.on('open-about', () => {
 });
 
 // =====================================================================
-// ⬇️ DESCARGAS MÍNIMAS (solo activas, sin historial)
-// Copiado de Brave/Chromium (bubble anclado DENTRO de la ventana):
+// ⬇️ MINIMAL DOWNLOADS (active only, no history)
+// Copied from Brave/Chromium (bubble anchored INSIDE the window):
 // - brave-core: DownloadToolbarButtonView + DownloadBubbleUIController.
-//   El bubble NO es una ventana del SO, es un panel anclado al botón ⬇
-//   del toolbar que se auto-abre al iniciar una descarga.
-// - Aquí igual: un WebContentsView de 300x260 anclado arriba-derecha
-//   (y=TOP_OFFSET). La ventana BrowserWindow anterior fallaba porque en
-//   Wayland el compositor (KWin) ignora x/y y centra todo (docs Electron
-//   "platform notices" + issues #48833/#52204). Dentro de la ventana las
-//   coordenadas sí son exactas.
+//   The bubble is NOT an OS window, it's a panel anchored to the ⬇
+//   toolbar button that auto-opens when a download starts.
+// - Same here: a 300x260 WebContentsView anchored top-right
+//   (y=TOP_OFFSET). The previous BrowserWindow failed because on
+//   Wayland the compositor (KWin) ignores x/y and centers everything
+//   (Electron docs "platform notices" + issues #48833/#52204). Inside
+//   the window, coordinates are exact.
 // =====================================================================
 const DL_BUBBLE_W = 300;
 const DL_BUBBLE_H = 260;
@@ -781,7 +781,7 @@ function updateBubbleBounds() {
   });
 }
 
-// Las tab views se re-añaden al cambiar/navegar; el bubble va encima.
+// Tab views are re-added on switch/navigate; bubble goes on top.
 function ensureBubbleOnTop() {
   if (!dlBubbleVisible || !dlBubble || !mainWindow || mainWindow.isDestroyed()) return;
   if (dlBubble.webContents.isDestroyed()) return;
@@ -814,8 +814,8 @@ function showBubble() {
   try {
     mainWindow.contentView.addChildView(dlBubble);
     updateBubbleBounds();
-    // Sin focus: la página sigue recibiendo el teclado (equivale al
-    // ShowInactive de Chromium, no roba foco al auto-abrir).
+    // No focus: page keeps keyboard (equals Chromium's
+    // ShowInactive, doesn't steal focus on auto-open).
     dlBubble.webContents.send('download-list', dlSnapshot());
   } catch (e) { }
 }
@@ -852,10 +852,10 @@ function initDownloads() {
       const d = activeDownloads.get(id);
       if (d) d.meta.state = state;
       sendToDlUI('download-done', { id, state, name: item.getFilename() });
-      // Limpieza a los 5s
+      // Cleanup after 5s
       setTimeout(() => activeDownloads.delete(id), 5000);
     });
-    // Auto-abre el bubble al iniciar (como Brave), sin robar foco
+    // Auto-opens the bubble on start (like Brave), no focus steal
     showBubble();
   });
 }
@@ -882,11 +882,11 @@ ipcMain.on('clear-memory', () => {
 ipcMain.on('show-context-menu', (event, tabId) => {
   const tab = tabs.find(t => t.id === tabId);
   const menu = Menu.buildFromTemplate([
-    { label: 'Nueva pestaña', click: () => createTab('') },
+    { label: 'New tab', click: () => createTab('') },
     ...(tab ? [
-      { label: tab.pinned ? 'Desanclar pestaña' : 'Anclar pestaña', click: () => toggleTabPin(tabId) },
+      { label: tab.pinned ? 'Unpin tab' : 'Pin tab', click: () => toggleTabPin(tabId) },
       { type: 'separator' },
-      { label: 'Cerrar pestaña', enabled: !tab.pinned, click: () => closeTab(tabId) }
+      { label: 'Close tab', enabled: !tab.pinned, click: () => closeTab(tabId) }
     ] : [])
   ]);
   menu.popup({ window: mainWindow });
@@ -903,13 +903,13 @@ app.whenReady().then(async () => {
   initDownloads();
   createMainWindow();
 
-  // Flag --open-url="https://..." para benchmark/automatización.
-  // Ej: npm start -- --open-url="https://youtube.com"
+  // Flag --open-url="https://..." for benchmark/automation.
+  // Ex: npm start -- --open-url="https://youtube.com"
   const openArg = process.argv.find(a => a.startsWith('--open-url='));
   const startUrl = openArg ? openArg.slice('--open-url='.length) : '';
 
   mainWindow.webContents.once('dom-ready', () => {
-    // --open-url manda (benchmark); si no, sesión; si no, homepage
+    // --open-url wins (benchmark); else session; else homepage
     if (startUrl) {
       createTab(startUrl);
       return;

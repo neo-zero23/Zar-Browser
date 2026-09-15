@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Descargas</title>
+<title>Downloads</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  /* Bubble anclado estilo Brave: tarjeta sólida (las views no son transparentes) */
+  /* Brave-style anchored bubble: solid card (views aren't transparent) */
   html, body { background: #101010; height: 100%; overflow: hidden; margin: 0; }
   #dl-popup {
     position: static;
@@ -26,14 +26,14 @@
 </head>
 <body>
   <div id="dl-popup" class="quick-settings-dropdown">
-    <div id="dl-head"><span>Descargas</span><button id="dl-close" class="tab-close" title="Cerrar">✕</button></div>
+    <div id="dl-head"><span>Downloads</span><button id="dl-close" class="tab-close" title="Close">✕</button></div>
     <div class="qs-divider"></div>
-    <div id="dl-list"><div class="qs-item"><span class="qs-label">Sin descargas</span></div></div>
+    <div id="dl-list"><div class="qs-item"><span class="qs-label">No downloads</span></div></div>
     <div class="qs-divider"></div>
-    <div id="dl-status">Solo descargas activas. Sin historial.</div>
+    <div id="dl-status">Active downloads only. No history.</div>
   </div>
 <script>
-  // UI del popup de descargas (ventana nativa, por encima del WebContentsView).
+  // Downloads popup UI (native window, above the WebContentsView).
   const list = document.getElementById('dl-list');
   const status = document.getElementById('dl-status');
   const items = new Map(); // id -> meta
@@ -46,7 +46,7 @@
 
   function render() {
     if (items.size === 0) {
-      list.innerHTML = '<div class="qs-item"><span class="qs-label">Sin descargas</span></div>';
+      list.innerHTML = '<div class="qs-item"><span class="qs-label">No downloads</span></div>';
       return;
     }
     list.innerHTML = '';
@@ -54,7 +54,7 @@
       const pct = d.total > 0 ? Math.round((d.received / d.total) * 100) : 0;
       const row = document.createElement('div');
       row.className = 'qs-item';
-      row.innerHTML = `<div class="dl-row"><div class="dl-top"><span class="dl-name qs-label">${esc(d.name)} — ${pct}%</span><button class="tab-close" title="Cancelar">✕</button></div><div class="dl-bar"><div class="dl-fill" style="width:${pct}%"></div></div></div>`;
+      row.innerHTML = `<div class="dl-row"><div class="dl-top"><span class="dl-name qs-label">${esc(d.name)} — ${pct}%</span><button class="tab-close" title="Cancel">✕</button></div><div class="dl-bar"><div class="dl-fill" style="width:${pct}%"></div></div></div>`;
       row.querySelector('button').addEventListener('click', () => window.api.cancelDownload(d.id));
       list.appendChild(row);
     }

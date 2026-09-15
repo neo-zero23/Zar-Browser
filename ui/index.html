@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
@@ -21,23 +21,23 @@
         <div id="tabs-list">
           <!-- Dynamic tabs injected by renderer.js -->
         </div>
-        <button id="add-tab-btn" class="titlebar-btn" title="Nueva pestaña (Ctrl+T)">+</button>
+        <button id="add-tab-btn" class="titlebar-btn" title="New tab (Ctrl+T)">+</button>
       </div>
       <div class="window-controls">
-        <button id="win-minimize" class="win-btn" title="Minimizar">—</button>
-        <button id="win-maximize" class="win-btn" title="Maximizar">🗖</button>
-        <button id="win-close" class="win-btn win-btn-close" title="Cerrar">✕</button>
+        <button id="win-minimize" class="win-btn" title="Minimize">—</button>
+        <button id="win-maximize" class="win-btn" title="Maximize">🗖</button>
+        <button id="win-close" class="win-btn win-btn-close" title="Close">✕</button>
       </div>
     </header>
 
     <!-- Navigation Toolbar -->
     <div id="toolbar">
-      <button id="nav-back" class="nav-btn" title="Atrás (Alt+Izquierda)">←</button>
-      <button id="nav-forward" class="nav-btn" title="Adelante (Alt+Derecha)">→</button>
-      <button id="nav-reload" class="nav-btn" title="Recargar (Ctrl+R / F5)">↻</button>
-      <button id="nav-home" class="nav-btn" title="Inicio">⌂</button>
+      <button id="nav-back" class="nav-btn" title="Back (Alt+Left)">←</button>
+      <button id="nav-forward" class="nav-btn" title="Forward (Alt+Right)">→</button>
+      <button id="nav-reload" class="nav-btn" title="Reload (Ctrl+R / F5)">↻</button>
+      <button id="nav-home" class="nav-btn" title="Home">⌂</button>
 
-      <button id="engine-btn" class="nav-btn engine-btn" title="Motor de búsqueda">D</button>
+      <button id="engine-btn" class="nav-btn engine-btn" title="Search engine">D</button>
       <div id="engine-dropdown" class="quick-settings-dropdown hidden">
         <div class="qs-item" data-engine="duckduckgo"><span class="qs-icon">D</span><span class="qs-label">DuckDuckGo</span></div>
         <div class="qs-item" data-engine="google"><span class="qs-icon">G</span><span class="qs-label">Google</span></div>
@@ -47,12 +47,12 @@
       </div>
 
       <div id="search-container" class="url-bar-container">
-        <input id="url-input" type="text" placeholder="Buscar o introducir dirección web..." autocomplete="off" spellcheck="false">
+        <input id="url-input" type="text" placeholder="Search or enter a web address..." autocomplete="off" spellcheck="false">
         <div id="loading-progress" class="progress-bar-hidden"></div>
       </div>
 
-      <button id="clean-cache-btn" class="nav-btn clean-btn" title="Liberar memoria RAM">🧹</button>
-      <button id="dl-btn" class="nav-btn" title="Descargas activas">
+      <button id="clean-cache-btn" class="nav-btn clean-btn" title="Free RAM">🧹</button>
+      <button id="dl-btn" class="nav-btn" title="Active downloads">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
           <path d="M11 3h2v9.586l2.293-2.293 1.414 1.414L12 16.414l-4.707-4.707 1.414-1.414L11 12.586V3zM5 19h14v2H5z"/>
         </svg>
@@ -60,7 +60,7 @@
           <circle id="dl-ring-circle" cx="14" cy="14" r="12" fill="none" stroke="var(--accent-red)" stroke-width="2" stroke-dasharray="75.4" stroke-dashoffset="75.4" transform="rotate(-90 14 14)"/>
         </svg>
       </button>
-      <button id="quick-settings-btn" class="nav-btn" title="Menú">
+      <button id="quick-settings-btn" class="nav-btn" title="Menu">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <circle cx="12" cy="5" r="2" />
           <circle cx="12" cy="12" r="2" />
@@ -79,7 +79,7 @@
             <img class="logo-icon" src="../assets/iconmini.svg" alt="Zar">
           </div>
           <div class="homepage-search-box">
-            <input id="homepage-search-input" type="text" placeholder="Buscar en la web o escribir una URL..." autocomplete="off" spellcheck="false" autofocus>
+            <input id="homepage-search-input" type="text" placeholder="Search the web or type a URL..." autocomplete="off" spellcheck="false" autofocus>
           </div>
           <div class="homepage-shortcuts">
             <a href="#" class="shortcut-item" data-url="https://duckduckgo.com">DuckDuckGo</a>
@@ -98,29 +98,29 @@
   <div id="quick-settings-dropdown" class="quick-settings-dropdown hidden">
     <div class="qs-item" data-action="new-tab">
       <span class="qs-icon">➕</span>
-      <span class="qs-label">Nueva pestaña</span>
+      <span class="qs-label">New tab</span>
     </div>
     <div class="qs-item" data-action="clear-cache">
       <span class="qs-icon">🧹</span>
-      <span class="qs-label">Liberar memoria RAM</span>
+      <span class="qs-label">Free RAM</span>
     </div>
     <div class="qs-item" data-action="devtools">
       <span class="qs-icon">🛠️</span>
-      <span class="qs-label">Herramientas de desarrollo</span>
+      <span class="qs-label">Developer tools</span>
     </div>
     <div class="qs-item" data-action="settings">
       <span class="qs-icon">⚙️</span>
-      <span class="qs-label">Configuración</span>
+      <span class="qs-label">Settings</span>
     </div>
     <div class="qs-divider"></div>
     <div class="qs-item" data-action="about">
       <span class="qs-icon">⚡</span>
-      <span class="qs-label">Acerca de Zar</span>
+      <span class="qs-label">About Zar</span>
     </div>
   </div>
 
-  <!-- Descargas: UI en popup nativo (ver ui/download-popup.html).
-       El dropdown HTML quedaba detrás del WebContentsView. -->
+  <!-- Downloads UI lives in the anchored bubble (see ui/download-popup.html).
+       Plain HTML dropdowns render behind the WebContentsView. -->
   <script src="renderer.js"></script>
 </body>
 

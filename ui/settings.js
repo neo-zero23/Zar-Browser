@@ -1,10 +1,10 @@
-// ⚙️ ZAR SETTINGS — guardado inmediato, sin botón Guardar
+// ⚙️ ZAR SETTINGS — instant save, no Save button
 const $ = (id) => document.getElementById(id);
 const saved = $('saved');
 let savedTimer = null;
 
 function flash(msg) {
-  saved.textContent = msg || 'Guardado ✓';
+  saved.textContent = msg || 'Saved ✓';
   saved.classList.add('show');
   clearTimeout(savedTimer);
   savedTimer = setTimeout(() => saved.classList.remove('show'), 2000);
@@ -46,6 +46,6 @@ $('btn-cleardata').addEventListener('click', () => {
 });
 
 window.api.onSettingsChanged(() => flash());
-window.api.onSiteDataCleared(() => flash('Caché y cookies borradas ✓'));
+window.api.onSiteDataCleared(() => flash('Cache and cookies cleared ✓'));
 
 window.api.getSettings().then(paint).catch(() => paint({ searchEngine: 'duckduckgo', homepage: '', adblockEnabled: true, tabDiscardingEnabled: true, tabDiscardingTimeout: 5, engines: [] }));

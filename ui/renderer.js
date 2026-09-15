@@ -45,7 +45,7 @@ navForward.addEventListener('click', () => window.api.goForward());
 navReload.addEventListener('click', () => window.api.reload());
 navHome.addEventListener('click', () => window.api.goHome());
 
-// ← → se atenúan sin historial (main valida con canGoBack/canGoForward)
+// ← → dim without history (main validates with canGoBack/canGoForward)
 navBack.disabled = true;
 navForward.disabled = true;
 window.api.onNavStateChanged(({ canGoBack, canGoForward }) => {
@@ -60,7 +60,7 @@ function navigate(rawInput) {
   }
 }
 
-// El sistema usa file:// real, pero el usuario solo ve zar://settings/about
+// The system uses the real file://, but the user only sees zar://settings/about
 function displayUrl(url) {
   if (!url) return '';
   if (url.endsWith('/ui/settings.html')) return 'zar://settings';
@@ -164,16 +164,16 @@ addTabBtn.addEventListener('click', () => {
 });
 
 window.api.onTabCreated(({ tabId, url, title, pinned }) => {
-  tabData[tabId] = { url: url || '', title: title || 'Nueva pestaña', pinned: !!pinned, discarded: false };
+  tabData[tabId] = { url: url || '', title: title || 'New tab', pinned: !!pinned, discarded: false };
 
   const tabEl = document.createElement('div');
   tabEl.className = 'tab-item' + (pinned ? ' pinned' : '');
   tabEl.id = `tab-${tabId}`;
   tabEl.innerHTML = `
     <img class="tab-favicon" alt="">
-    <span class="tab-title-text">${title || 'Nueva pestaña'}</span>
+    <span class="tab-title-text">${title || 'New tab'}</span>
     <span class="tab-pin">📌</span>
-    <button class="tab-close" title="Cerrar pestaña">✕</button>
+    <button class="tab-close" title="Close tab">✕</button>
   `;
 
   const domain = extractDomain(url);
@@ -266,7 +266,7 @@ window.api.onTabTitleChanged(({ tabId, title }) => {
   if (tabEl) {
     const titleSpan = tabEl.querySelector('.tab-title-text');
     if (titleSpan) {
-      titleSpan.textContent = title || 'Nueva pestaña';
+      titleSpan.textContent = title || 'New tab';
     }
   }
 });
@@ -298,7 +298,7 @@ window.api.onTabDiscarded(({ tabId, title }) => {
   if (tabEl) {
     tabEl.classList.add('discarded');
     const titleSpan = tabEl.querySelector('.tab-title-text');
-    if (titleSpan) titleSpan.textContent = `${title} (Suspendida)`;
+    if (titleSpan) titleSpan.textContent = `${title} (Suspended)`;
   }
 });
 
@@ -311,7 +311,7 @@ window.api.onTabRestored(({ tabId }) => {
     tabEl.classList.remove('discarded');
     const titleSpan = tabEl.querySelector('.tab-title-text');
     if (titleSpan && tabData[tabId]) {
-      titleSpan.textContent = tabData[tabId].title || 'Nueva pestaña';
+      titleSpan.textContent = tabData[tabId].title || 'New tab';
     }
   }
   updateHomepageVisibility();
@@ -322,7 +322,7 @@ window.api.onOpenNewTabFromWeb((url) => {
 });
 
 // =====================================================================
-// ⚡ 6. MEMORY PURGE (sin meter; KDE Monitor hace eso mejor)
+// ⚡ 6. MEMORY PURGE (no meter; KDE Monitor does that better)
 // =====================================================================
 cleanCacheBtn.addEventListener('click', () => {
   window.api.clearMemory();
@@ -424,7 +424,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 
-  // Zoom nativo (niveles estándar enteros en main)
+  // Native zoom (integer standard levels in main)
   if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); window.api.zoomIn(); return; }
   if ((e.ctrlKey || e.metaKey) && (e.key === '-')) { e.preventDefault(); window.api.zoomOut(); return; }
   if ((e.ctrlKey || e.metaKey) && (e.key === '0')) { e.preventDefault(); window.api.zoomReset(); return; }
@@ -470,7 +470,7 @@ window.api.onFullscreenChanged((isFullscreen) => {
 });
 
 // =====================================================================
-// ⬇️ 9. DESCARGAS (botón ⬇ abre bubble anclado; anillo = progreso)
+// ⬇️ 9. DOWNLOADS (⬇ button opens anchored bubble; ring = progress)
 // =====================================================================
 const dlBtn = document.getElementById('dl-btn');
 const dlRing = document.getElementById('dl-ring');
@@ -482,7 +482,7 @@ dlBtn.addEventListener('click', (e) => {
   window.api.openDownloadPopup();
 });
 
-// Anillo de progreso estilo Brave (los eventos ya llegan a esta ventana)
+// Brave-style progress ring (events already reach this window)
 window.api.onDownloadUpdated((d) => {
   const pct = d.total > 0 ? d.received / d.total : 0;
   dlRingCircle.style.strokeDashoffset = String(DL_RING_C * (1 - Math.min(1, pct)));
@@ -495,7 +495,7 @@ window.api.onDownloadDone(() => {
 });
 
 // =====================================================================
-// 🔍 10. SELECTOR DE MOTOR (D=DDG default, G, B, S, X)
+// 🔍 10. ENGINE SELECTOR (D=DDG default, G, B, S, X)
 // =====================================================================
 const engineBtn = document.getElementById('engine-btn');
 const engineDropdown = document.getElementById('engine-dropdown');

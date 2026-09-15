@@ -1,8 +1,8 @@
 /* =====================================================================
    ⚡ ZAR BROWSER — CORE DESIGN SYSTEM & STYLING
    "Optimization before beauty. Zero customization. Just speed."
-   Paleta monocroma: grises. Rojo (#e63946) SOLO en hover/focus,
-   progreso de descargas, anillo ⬇ y estados destructivos.
+   Monochrome palette: grays. Red (#e63946) ONLY on hover/focus,
+   download progress, ⬇ ring and destructive states.
    ===================================================================== */
 
 @font-face {
@@ -88,7 +88,7 @@ body {
 }
 
 .zar-red {
-  color: #ededed; /* era rojo: branding pasado a gris (revertir si se quiere) */
+  color: #ededed; /* was red: branding moved to gray (revert if wanted) */
 }
 
 #tabs-list {
@@ -317,7 +317,7 @@ body {
   bottom: 0;
   left: 0;
   height: 2px;
-  background: #ededed; /* progreso de carga: gris (el rojo queda en descargas) */
+  background: #ededed; /* load progress: gray (red stays on downloads) */
   transition: width 0.2s ease, opacity 0.2s ease;
 }
 
@@ -334,13 +334,13 @@ body {
   font-size: 12px;
 }
 
-/* Botones nav sin historial */
+/* Nav buttons without history */
 .nav-btn:disabled {
   opacity: 0.3;
   cursor: default;
 }
 
-/* Selector de motor (reusa .quick-settings-dropdown) */
+/* Engine selector (reuses .quick-settings-dropdown) */
 .engine-btn {
   font-weight: 800;
   font-size: 14px;
@@ -357,7 +357,7 @@ body {
   background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Anillo de progreso del botón ⬇ (estilo Brave, solo UX, sin features) */
+/* ⬇ button progress ring (Brave style, UX only, no features) */
 #dl-btn {
   position: relative;
 }
@@ -429,11 +429,11 @@ body {
 }
 
 .homepage-logo .logo-accent {
-  color: #ededed; /* era rojo: branding pasado a gris (revertir si se quiere) */
+  color: #ededed; /* was red: branding moved to gray (revert if wanted) */
   text-shadow: none;
 }
 
-/* Wordmark del homepage: única parte con Caesar Dressing */
+/* Homepage wordmark: only part using Caesar Dressing */
 .wordmark {
   font-family: 'Caesar Dressing', monospace;
   font-size: 72px;

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self';">
-<title>Ajustes - Zar</title>
+<title>Settings - Zar</title>
 <style>
   :root { --bg: #0a0a0a; --card: #141414; --border: #2a2a2a; --text: #ededed; --muted: #8e8e93; --red: #e63946; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,49 +26,49 @@
 </head>
 <body>
 <main>
-  <h1>AJUSTES</h1>
+  <h1>SETTINGS</h1>
 
   <h2>General</h2>
   <div class="card">
     <div class="row">
-      <div>Homepage URL<small>Vacío = overlay de Zar. URL = abre esa página con ⌂.</small></div>
+      <div>Homepage URL<small>Empty = Zar overlay. URL = open it with ⌂.</small></div>
       <input id="in-homepage" type="text" placeholder="about:blank" spellcheck="false">
     </div>
   </div>
 
-  <h2>Búsqueda</h2>
+  <h2>Search</h2>
   <div class="card">
     <div class="row">
-      <div>Motor de búsqueda</div>
+      <div>Search engine</div>
       <select id="sel-engine"></select>
     </div>
   </div>
 
-  <h2>Privacidad</h2>
+  <h2>Privacy</h2>
   <div class="card">
     <div class="row">
-      <div>Adblock<small>Bloquea anuncios y rastreadores (EasyList).</small></div>
+      <div>Adblock<small>Blocks ads and trackers (EasyList).</small></div>
       <input id="ck-adblock" type="checkbox">
     </div>
     <div class="row">
-      <div>Borrar caché y cookies<small>Sesión persist:zar.</small></div>
-      <button id="btn-cleardata">Borrar</button>
+      <div>Clear cache and cookies<small>persist:zar session.</small></div>
+      <button id="btn-cleardata">Clear</button>
     </div>
   </div>
 
-  <h2>Rendimiento</h2>
+  <h2>Performance</h2>
   <div class="card">
     <div class="row">
-      <div>Suspender tabs inactivas<small>Libera RAM (las restaura al volver).</small></div>
+      <div>Suspend idle tabs<small>Frees RAM (restores on return).</small></div>
       <input id="ck-discard" type="checkbox">
     </div>
     <div class="row">
-      <div>Tiempo para suspender (min)</div>
+      <div>Time to suspend (min)</div>
       <input id="in-discardmin" type="number" min="1" max="120" step="1">
     </div>
   </div>
 </main>
-<div id="saved">Guardado ✓</div>
+<div id="saved">Saved ✓</div>
 <script src="settings.js"></script>
 </body>
 </html>

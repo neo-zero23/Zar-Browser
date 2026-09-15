@@ -24,12 +24,12 @@ contextBridge.exposeInMainWorld('api', {
   zoomReset: () => ipcRenderer.send('zoom-reset'),
   openAbout: () => ipcRenderer.send('open-about'),
 
-  // Descargas mínimas (UI vive en bubble anclado ui/download-popup.html)
+  // Minimal downloads (UI lives in anchored bubble ui/download-popup.html)
   openDownloadPopup: () => ipcRenderer.send('open-download-popup'),
   closeDownloadPopup: () => ipcRenderer.send('close-download-popup'),
   cancelDownload: (id) => ipcRenderer.send('download-cancel', id),
 
-  // Motor de búsqueda
+  // Search engine
   getSearchEngine: () => ipcRenderer.invoke('get-search-engine'),
   setSearchEngine: (id) => ipcRenderer.send('set-search-engine', id),
 

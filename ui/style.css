@@ -412,7 +412,7 @@ body {
   margin-bottom: 30px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0;
 }
 
 .homepage-logo .logo-icon {

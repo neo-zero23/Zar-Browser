@@ -60,13 +60,21 @@ function navigate(rawInput) {
   }
 }
 
+// El sistema usa file:// real, pero el usuario solo ve zar://settings/about
+function displayUrl(url) {
+  if (!url) return '';
+  if (url.endsWith('/ui/settings.html')) return 'zar://settings';
+  if (url.endsWith('/ui/about.html')) return 'zar://about';
+  return url;
+}
+
 urlInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     navigate(urlInput.value);
     urlInput.blur();
   } else if (e.key === 'Escape') {
     const tab = tabData[activeTabId];
-    urlInput.value = tab ? tab.url || '' : '';
+    urlInput.value = displayUrl(tab ? tab.url || '' : '');
     urlInput.blur();
   }
 });
@@ -206,7 +214,7 @@ window.api.onTabSwitched(({ tabId, url, title }) => {
 
   const tab = tabData[tabId];
   if (tab) {
-    urlInput.value = tab.url || '';
+    urlInput.value = displayUrl(tab.url || '');
   }
 
   updateHomepageVisibility();
@@ -235,7 +243,7 @@ window.api.onTabUrlChanged(({ tabId, url }) => {
   }
 
   if (tabId === activeTabId) {
-    urlInput.value = url || '';
+    urlInput.value = displayUrl(url || '');
     updateHomepageVisibility();
   }
 

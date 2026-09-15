@@ -14,7 +14,17 @@ applyChromiumSwitches(app);
 // =====================================================================
 const PARTITION = 'persist:zar';
 const TOP_OFFSET = 78; // Titlebar (38px) + Toolbar (40px)
-const DISCARD_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const DEFAULT_DISCARD_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+
+// Tab discarding configurable (settings page). Sin timer si se apaga.
+let tabDiscardTimeoutMs = DEFAULT_DISCARD_TIMEOUT_MS;
+let discardTimer = null;
+function applyDiscardingSettings() {
+  if (discardTimer) { clearInterval(discardTimer); discardTimer = null; }
+  if (settings.tabDiscardingEnabled) {
+    discardTimer = setInterval(checkIdleTabs, 60000);
+  }
+}
 
 let mainWindow = null;
 let tabs = [];
@@ -395,7 +405,7 @@ function checkIdleTabs() {
   const now = Date.now();
   tabs.forEach(tab => {
     if (tab.id === activeTabId || tab.pinned || tab.discarded || !tab.url) return;
-    if (now - tab.lastActive >= DISCARD_TIMEOUT_MS) {
+    if (now - tab.lastActive >= tabDiscardTimeoutMs) {
       discardTab(tab);
     }
   });
@@ -439,8 +449,7 @@ function restoreTab(tab) {
   }
 }
 
-// Check every 60s for tabs idle > 5 minutes
-setInterval(checkIdleTabs, 60000);
+// Timer creado por applyDiscardingSettings() en el arranque (respeta settings)
 
 // =====================================================================
 // 🔌 IPC EVENT HANDLERS
@@ -483,36 +492,121 @@ const SEARCH_ENGINES = {
   searxng: { name: 'SearXNG', initial: 'X', url: 'https://searx.be/search?q=' }
 };
 const DEFAULT_ENGINE = 'duckduckgo';
-let searchEngine = DEFAULT_ENGINE;
+
+// Settings completos (settings page). Claves validadas al leer/escribir.
+const DEFAULT_SETTINGS = {
+  searchEngine: DEFAULT_ENGINE,
+  homepage: 'about:blank',
+  adblockEnabled: true,
+  tabDiscardingEnabled: true,
+  tabDiscardingTimeout: 5 // minutos
+};
+let settings = { ...DEFAULT_SETTINGS };
 
 function settingsPath() {
   // En Linux resuelve a ~/.config/zar-browser/zar-settings.json
   return path.join(app.getPath('userData'), 'zar-settings.json');
 }
 
-function loadSearchSettings() {
+function loadSettings() {
+  let raw = {};
+  try { raw = JSON.parse(fs.readFileSync(settingsPath(), 'utf8')); } catch (e) { /* primera vez */ }
+  if (raw && typeof raw === 'object') {
+    if (raw.searchEngine && SEARCH_ENGINES[raw.searchEngine]) settings.searchEngine = raw.searchEngine;
+    if (typeof raw.homepage === 'string') settings.homepage = raw.homepage.trim();
+    if (typeof raw.adblockEnabled === 'boolean') settings.adblockEnabled = raw.adblockEnabled;
+    if (typeof raw.tabDiscardingEnabled === 'boolean') settings.tabDiscardingEnabled = raw.tabDiscardingEnabled;
+    const t = Number(raw.tabDiscardingTimeout);
+    if (Number.isFinite(t)) settings.tabDiscardingTimeout = Math.min(120, Math.max(1, Math.round(t)));
+  }
+  tabDiscardTimeoutMs = settings.tabDiscardingTimeout * 60 * 1000;
+}
+
+function saveSettings() {
   try {
-    const id = JSON.parse(fs.readFileSync(settingsPath(), 'utf8')).searchEngine;
-    if (id && SEARCH_ENGINES[id]) searchEngine = id;
-  } catch (e) { /* primera vez: default */ }
+    fs.writeFileSync(settingsPath(), JSON.stringify(settings, null, 2));
+  } catch (e) { }
 }
 
 function engineUrl(id) {
   return (SEARCH_ENGINES[id] || SEARCH_ENGINES[DEFAULT_ENGINE]).url;
 }
 
-ipcMain.handle('get-search-engine', () => searchEngine);
-
-ipcMain.on('set-search-engine', (event, id) => {
+function setEngine(id) {
   if (!id || !SEARCH_ENGINES[id]) return;
-  searchEngine = id;
+  settings.searchEngine = id;
+  saveSettings();
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('search-engine-changed', settings.searchEngine);
+  }
+}
+
+function broadcastSettings() {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('settings-changed', getSettingsPayload());
+  }
+}
+
+function getSettingsPayload() {
+  return {
+    ...settings,
+    engines: Object.entries(SEARCH_ENGINES).map(([id, e]) => ({ id, name: e.name }))
+  };
+}
+
+ipcMain.handle('get-search-engine', () => settings.searchEngine);
+
+ipcMain.on('set-search-engine', (event, id) => setEngine(id));
+
+ipcMain.handle('get-settings', () => getSettingsPayload());
+
+ipcMain.on('set-setting', (event, key, value) => {
+  if (key === 'searchEngine') { setEngine(value); broadcastSettings(); return; }
+  if (key === 'homepage' && typeof value === 'string') {
+    settings.homepage = value.trim();
+  } else if (key === 'adblockEnabled' && typeof value === 'boolean') {
+    settings.adblockEnabled = value;
+    applyAdblockSetting();
+  } else if (key === 'tabDiscardingEnabled' && typeof value === 'boolean') {
+    settings.tabDiscardingEnabled = value;
+    applyDiscardingSettings();
+  } else if (key === 'tabDiscardingTimeout') {
+    const t = Number(value);
+    if (!Number.isFinite(t)) return;
+    settings.tabDiscardingTimeout = Math.min(120, Math.max(1, Math.round(t)));
+    tabDiscardTimeoutMs = settings.tabDiscardingTimeout * 60 * 1000;
+  } else {
+    return; // clave desconocida: se ignora
+  }
+  saveSettings();
+  broadcastSettings();
+});
+
+ipcMain.on('open-settings', () => {
+  createTab('file://' + path.join(__dirname, 'ui', 'settings.html'));
+});
+
+ipcMain.on('clear-site-data', async () => {
   try {
-    fs.writeFileSync(settingsPath(), JSON.stringify({ searchEngine }, null, 2));
+    const sess = session.fromPartition(PARTITION);
+    await sess.clearCache();
+    await sess.clearStorageData({ storages: ['cookies'] });
   } catch (e) { }
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('search-engine-changed', searchEngine);
+    mainWindow.webContents.send('site-data-cleared');
   }
 });
+
+// Adblock on/off en caliente (disableBlockingInSession verificado en v2.18.2)
+function applyAdblockSetting() {
+  const sess = session.fromPartition(PARTITION);
+  if (settings.adblockEnabled) {
+    if (!adBlocker) initAdBlocker();
+    else { try { adBlocker.enableBlockingInSession(sess); } catch (e) { } }
+  } else if (adBlocker) {
+    try { adBlocker.disableBlockingInSession(sess); } catch (e) { }
+  }
+}
 
 ipcMain.on('navigate-to', (event, input) => {
   const tab = getActiveTab();
@@ -526,7 +620,7 @@ ipcMain.on('navigate-to', (event, input) => {
   } else if (targetUrl.includes('.') && !targetUrl.includes(' ')) {
     targetUrl = 'https://' + targetUrl;
   } else {
-    targetUrl = `${engineUrl(searchEngine)}${encodeURIComponent(targetUrl)}`;
+    targetUrl = `${engineUrl(settings.searchEngine)}${encodeURIComponent(targetUrl)}`;
   }
 
   tab.url = targetUrl;
@@ -548,6 +642,24 @@ ipcMain.on('navigate-to', (event, input) => {
 ipcMain.on('go-home', () => {
   const tab = getActiveTab();
   if (!tab || !tab.view || tab.view.webContents.isDestroyed()) return;
+
+  // Homepage custom: si es URL real, navega; si no, overlay como siempre
+  const hp = (settings.homepage || '').trim();
+  if (hp && (hp.startsWith('http://') || hp.startsWith('https://'))) {
+    tab.url = hp;
+    tab.discarded = false;
+    try {
+      mainWindow.contentView.addChildView(tab.view);
+      updateViewBounds(tab.view);
+      tab.view.webContents.loadURL(hp);
+      tab.view.webContents.focus();
+    } catch (e) { }
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('tab-url-changed', { tabId: tab.id, url: hp });
+    }
+    ensureBubbleOnTop();
+    return;
+  }
 
   tab.url = '';
   tab.title = 'Nueva pestaña';
@@ -779,8 +891,9 @@ ipcMain.on('show-context-menu', (event, tabId) => {
 // =====================================================================
 app.whenReady().then(async () => {
   ZarDB.init();
-  loadSearchSettings();
-  initAdBlocker();
+  loadSettings();
+  if (settings.adblockEnabled) initAdBlocker();
+  applyDiscardingSettings();
   initDownloads();
   createMainWindow();
 

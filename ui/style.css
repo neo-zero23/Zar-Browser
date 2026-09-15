@@ -1,7 +1,17 @@
 /* =====================================================================
    ⚡ ZAR BROWSER — CORE DESIGN SYSTEM & STYLING
    "Optimization before beauty. Zero customization. Just speed."
+   Paleta monocroma: grises. Rojo (#e63946) SOLO en hover/focus,
+   progreso de descargas, anillo ⬇ y estados destructivos.
    ===================================================================== */
+
+@font-face {
+  font-family: 'Caesar Dressing';
+  src: url('../assets/fonts/CaesarDressing-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --bg-main: #0a0a0a;
@@ -78,7 +88,7 @@ body {
 }
 
 .zar-red {
-  color: var(--accent-red);
+  color: #ededed; /* era rojo: branding pasado a gris (revertir si se quiere) */
 }
 
 #tabs-list {
@@ -123,7 +133,7 @@ body {
 .tab-item.active {
   background-color: var(--tab-active);
   color: var(--text-primary);
-  border-top: 2px solid var(--accent-red);
+  border-top: 2px solid #a1a1aa;
   font-weight: 600;
 }
 
@@ -307,7 +317,7 @@ body {
   bottom: 0;
   left: 0;
   height: 2px;
-  background: var(--accent-red);
+  background: #ededed; /* progreso de carga: gris (el rojo queda en descargas) */
   transition: width 0.2s ease, opacity 0.2s ease;
 }
 
@@ -344,7 +354,7 @@ body {
 }
 
 #engine-dropdown .qs-item.active {
-  background-color: rgba(230, 57, 70, 0.15);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Anillo de progreso del botón ⬇ (estilo Brave, solo UX, sin features) */
@@ -411,8 +421,18 @@ body {
 }
 
 .homepage-logo .logo-accent {
-  color: var(--accent-red);
-  text-shadow: 0 0 24px var(--accent-red-glow);
+  color: #ededed; /* era rojo: branding pasado a gris (revertir si se quiere) */
+  text-shadow: none;
+}
+
+/* Wordmark del homepage: única parte con Caesar Dressing */
+.wordmark {
+  font-family: 'Caesar Dressing', monospace;
+  font-size: 72px;
+  font-weight: 400;
+  letter-spacing: 10px;
+  color: #ededed;
+  text-align: center;
 }
 
 .homepage-search-box {
@@ -424,7 +444,7 @@ body {
   width: 100%;
   height: 48px;
   background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #2a2a2a;
   border-radius: 24px;
   color: #ffffff;
   font-size: 15px;

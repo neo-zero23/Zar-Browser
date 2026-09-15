@@ -33,6 +33,12 @@ contextBridge.exposeInMainWorld('api', {
   getSearchEngine: () => ipcRenderer.invoke('get-search-engine'),
   setSearchEngine: (id) => ipcRenderer.send('set-search-engine', id),
 
+  // Settings page (Ctrl+,)
+  getSettings: () => ipcRenderer.invoke('get-settings'),
+  setSetting: (key, value) => ipcRenderer.send('set-setting', key, value),
+  openSettings: () => ipcRenderer.send('open-settings'),
+  clearSiteData: () => ipcRenderer.send('clear-site-data'),
+
   // System & DevTools
   clearMemory: () => ipcRenderer.send('clear-memory'),
   toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),
@@ -55,6 +61,8 @@ contextBridge.exposeInMainWorld('api', {
   onFullscreenChanged: (cb) => ipcRenderer.on('fullscreen-changed', (event, isFullscreen) => cb(isFullscreen)),
   onNavStateChanged: (cb) => ipcRenderer.on('nav-state-changed', (event, s) => cb(s)),
   onSearchEngineChanged: (cb) => ipcRenderer.on('search-engine-changed', (event, id) => cb(id)),
+  onSettingsChanged: (cb) => ipcRenderer.on('settings-changed', (event, s) => cb(s)),
+  onSiteDataCleared: (cb) => ipcRenderer.on('site-data-cleared', () => cb()),
   onDownloadUpdated: (cb) => ipcRenderer.on('download-updated', (event, d) => cb(d)),
   onDownloadDone: (cb) => ipcRenderer.on('download-done', (event, d) => cb(d)),
   onDownloadList: (cb) => ipcRenderer.on('download-list', (event, list) => cb(list))

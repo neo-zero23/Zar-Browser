@@ -432,6 +432,13 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 
+  // Ctrl+, = Settings
+  if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+    e.preventDefault();
+    window.api.openSettings();
+    return;
+  }
+
   // Alt+Left = Back
   if (e.altKey && e.key === 'ArrowLeft') {
     e.preventDefault();

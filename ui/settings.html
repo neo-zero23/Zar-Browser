@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self';">
+<title>Ajustes - Zar</title>
+<style>
+  :root { --bg: #0a0a0a; --card: #141414; --border: #2a2a2a; --text: #ededed; --muted: #8e8e93; --red: #e63946; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", Roboto, sans-serif; padding: 32px 20px 60px; display: flex; justify-content: center; }
+  main { width: 100%; max-width: 520px; }
+  h1 { font-size: 20px; letter-spacing: 4px; margin-bottom: 24px; }
+  h2 { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin: 24px 0 10px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; }
+  .row small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  input[type="text"], input[type="number"], select { background: #0a0a0a; border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 8px 10px; font-size: 13px; outline: none; max-width: 220px; }
+  input:focus, select:focus { border-color: var(--red); }
+  button { background: #1c1c1c; border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 8px 14px; font-size: 13px; cursor: pointer; }
+  button:hover { border-color: #555; }
+  input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--red); cursor: pointer; }
+  #saved { position: fixed; bottom: 16px; right: 16px; background: #1c1c1c; border: 1px solid var(--border); border-radius: 6px; padding: 8px 14px; font-size: 13px; opacity: 0; transition: opacity 0.2s; }
+  #saved.show { opacity: 1; }
+</style>
+</head>
+<body>
+<main>
+  <h1>AJUSTES</h1>
+
+  <h2>General</h2>
+  <div class="card">
+    <div class="row">
+      <div>Homepage URL<small>Vacío = overlay de Zar. URL = abre esa página con ⌂.</small></div>
+      <input id="in-homepage" type="text" placeholder="about:blank" spellcheck="false">
+    </div>
+  </div>
+
+  <h2>Búsqueda</h2>
+  <div class="card">
+    <div class="row">
+      <div>Motor de búsqueda</div>
+      <select id="sel-engine"></select>
+    </div>
+  </div>
+
+  <h2>Privacidad</h2>
+  <div class="card">
+    <div class="row">
+      <div>Adblock<small>Bloquea anuncios y rastreadores (EasyList).</small></div>
+      <input id="ck-adblock" type="checkbox">
+    </div>
+    <div class="row">
+      <div>Borrar caché y cookies<small>Sesión persist:zar.</small></div>
+      <button id="btn-cleardata">Borrar</button>
+    </div>
+  </div>
+
+  <h2>Rendimiento</h2>
+  <div class="card">
+    <div class="row">
+      <div>Suspender tabs inactivas<small>Libera RAM (las restaura al volver).</small></div>
+      <input id="ck-discard" type="checkbox">
+    </div>
+    <div class="row">
+      <div>Tiempo para suspender (min)</div>
+      <input id="in-discardmin" type="number" min="1" max="120" step="1">
+    </div>
+  </div>
+</main>
+<div id="saved">Guardado ✓</div>
+<script src="settings.js"></script>
+</body>
+</html>

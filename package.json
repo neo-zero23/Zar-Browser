@@ -1,6 +1,6 @@
 {
   "name": "zar-browser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "homepage": "https://github.com/neo-zero23/Zar-Browser",
   "description": "Zar Browser: navegador minimalista basado en Electron, sin bloat.",
   "main": "main.js",

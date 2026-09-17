@@ -40,6 +40,30 @@ jobs:
         env:
           USE_SYSTEM_FPM: 'true'
 
+      # .xbps (Void Linux): repack the .deb via xbps-create in a void container.
+      # Version read from package.json so it never rots on hardcoded numbers.
+      - name: Build .xbps (Void Linux)
+        if: runner.os == 'Linux'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          DEB_FILE=$(ls dist/*.deb | head -1)
+          docker run --rm -v $PWD:/host voidlinux/voidlinux /bin/sh -c "
+            xbps-install -Sy xbps binutils xz zstd
+            mkdir -p /tmp/zar-build
+            cd /tmp && ar x /host/$DEB_FILE
+            tar -xf data.tar.zst -C /tmp/zar-build/ 2>/dev/null || tar -xf data.tar.xz -C /tmp/zar-build/ 2>/dev/null || tar -xf data.tar.gz -C /tmp/zar-build/
+            xbps-create \
+              --architecture x86_64 \
+              --name zar-browser \
+              --version ${VERSION}_1 \
+              --short-desc 'Minimalist Chromium-based browser' \
+              --dependencies 'gtk+3 libnotify nss libXScrnSaver libXtst xdg-utils at-spi2-core util-linux libsecret' \
+              --homepage 'https://github.com/neo-zero23/Zar-Browser' \
+              --license 'MPL-2.0' \
+              -o /host/dist/zar-browser-${VERSION}_1.x86_64.xbps \
+              /tmp/zar-build
+          "
+
       - name: Build Windows installer
         if: runner.os == 'Windows'
         run: npm run build:win
@@ -51,6 +75,7 @@ jobs:
             dist/*.deb
             dist/*.rpm
             dist/*.pacman
+            dist/*.xbps
             dist/*.exe
           fail_on_unmatched_files: false
         env:

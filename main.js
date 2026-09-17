@@ -9,6 +9,13 @@ const { applyChromiumSwitches } = require('./optimizations');
 // Switches centralizados (ver optimizations.js). Llamar antes de ready.
 applyChromiumSwitches(app);
 
+// WhatsApp Web rejects Electron's default UA ("browser not supported").
+// Fallback to a Chrome UA with the running Chromium major (dynamic via
+// process.versions.chrome, never hardcoded like Neutron's Chrome/124).
+const CHROME_UA = `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ` +
+  `(KHTML, like Gecko) Chrome/${process.versions.chrome.split('.')[0]}.0.0.0 Safari/537.36`;
+app.userAgentFallback = CHROME_UA;
+
 // =====================================================================
 // 🌐 CONSTANTS & STATE
 // =====================================================================
@@ -16,7 +23,7 @@ const PARTITION = 'persist:zar';
 const TOP_OFFSET = 78; // Titlebar (38px) + Toolbar (40px)
 const DEFAULT_DISCARD_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
-// Tab discarding configurable (settings page). Sin timer si se apaga.
+// Tab discarding is configurable (settings page). No timer when off.
 let tabDiscardTimeoutMs = DEFAULT_DISCARD_TIMEOUT_MS;
 let discardTimer = null;
 function applyDiscardingSettings() {
@@ -30,6 +37,17 @@ let mainWindow = null;
 let tabs = [];
 let activeTabId = null;
 let adBlocker = null;
+
+// Clipboard (incl. images) is off by default in Electron. Allow clipboard
+// permissions on the Zar partition; deny the rest (no notification/media popups).
+// NOTE: unlike the draft, this must target the tab's session (persist:zar),
+// not the default session, or copy/paste in pages still fails.
+session.fromPartition(PARTITION).setPermissionRequestHandler((webContents, permission, callback) => {
+  if (permission === 'clipboard-read' || permission === 'clipboard-sanitized-write') {
+    return callback(true);
+  }
+  callback(false);
+});
 
 // =====================================================================
 // 🛡️ AD-BLOCKER (@ghostery/adblocker-electron, disk cache)
@@ -238,6 +256,9 @@ function createTab(initialUrl = '') {
       { label: 'Select all', role: 'selectAll' },
       ...(params.mediaType === 'image' ? [
         { type: 'separator' },
+        // NOTE: must use the TAB's webContents (params.x/y are tab-relative).
+        // mainWindow.webContents would capture the UI chrome at wrong coords.
+        { label: 'Copy image', click: () => { if (!wc.isDestroyed()) wc.copyImageAt(params.x, params.y); } },
         { label: 'Save image', click: () => wc.downloadURL(params.srcURL) }
       ] : []),
       ...(params.linkURL ? [
@@ -252,7 +273,7 @@ function createTab(initialUrl = '') {
 
   wc.on('did-start-navigation', (event, navUrl, isInPlace, isMainFrame) => {
     if (isMainFrame) {
-      // El blank del discarding no debe tocar el estado (conservar url/savedUrl)
+      // Discard blanking must not touch state (preserve url/savedUrl)
       if (tab.discarded && (!navUrl || navUrl.startsWith('about:'))) return;
       tab.url = navUrl;
       tab.lastActive = Date.now();

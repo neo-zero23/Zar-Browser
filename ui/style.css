@@ -78,18 +78,6 @@ body {
   overflow: hidden;
 }
 
-.zar-logo {
-  margin-right: 12px;
-  cursor: default;
-  display: flex;
-  align-items: center;
-}
-
-.zar-logo-icon {
-  width: 26px;
-  height: 26px;
-}
-
 #tabs-list {
   display: flex;
   gap: 4px;

@@ -339,7 +339,9 @@ window.api.onMemoryCleared(() => {
 // ⚙️ 7. QUICK MENU (native menu from main: renders above page views)
 // =====================================================================
 quickSettingsBtn.addEventListener('click', () => {
-  window.api.showQuickMenu();
+  // Anchored one button-size below the ⋮ button
+  const r = quickSettingsBtn.getBoundingClientRect();
+  window.api.showQuickMenu(window.screenX + r.left, window.screenY + r.bottom + 28);
 });
 
 // =====================================================================
@@ -472,7 +474,9 @@ function paintEngine(id) {
 }
 
 engineBtn.addEventListener('click', () => {
-  window.api.showEngineMenu();
+  // Slightly below and left of the engine button
+  const r = engineBtn.getBoundingClientRect();
+  window.api.showEngineMenu(window.screenX + r.left - 12, window.screenY + r.bottom + 4);
 });
 
 window.api.onSearchEngineChanged((id) => paintEngine(id));

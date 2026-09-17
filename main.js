@@ -916,7 +916,15 @@ ipcMain.on('show-context-menu', (event, tabId) => {
 });
 
 // Native menus render above WebContentsViews (HTML dropdowns can't).
-ipcMain.on('show-quick-menu', () => {
+// Position comes from the renderer button rect (screen coords).
+function popupAt(menu, x, y) {
+  const px = Number.isFinite(x) ? Math.round(x) : undefined;
+  const py = Number.isFinite(y) ? Math.round(y) : undefined;
+  if (px === undefined) menu.popup({ window: mainWindow });
+  else menu.popup({ window: mainWindow, x: px, y: py });
+}
+
+ipcMain.on('show-quick-menu', (event, x, y) => {
   const menu = Menu.buildFromTemplate([
     { label: 'New tab', click: () => createTab('') },
     { label: 'Free RAM', click: () => doClearMemory() },
@@ -929,10 +937,10 @@ ipcMain.on('show-quick-menu', () => {
     { type: 'separator' },
     { label: 'About Zar', click: () => createTab('file://' + path.join(__dirname, 'ui', 'about.html')) }
   ]);
-  menu.popup({ window: mainWindow });
+  popupAt(menu, x, y);
 });
 
-ipcMain.on('show-engine-menu', () => {
+ipcMain.on('show-engine-menu', (event, x, y) => {
   const menu = Menu.buildFromTemplate(
     Object.entries(SEARCH_ENGINES).map(([id, e]) => ({
       label: e.name,
@@ -941,7 +949,7 @@ ipcMain.on('show-engine-menu', () => {
       click: () => { setEngine(id); broadcastSettings(); }
     }))
   );
-  menu.popup({ window: mainWindow });
+  popupAt(menu, x, y);
 });
 
 // =====================================================================

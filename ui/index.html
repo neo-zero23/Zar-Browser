@@ -46,13 +46,6 @@
       </button>
 
       <button id="engine-btn" class="nav-btn engine-btn" title="Search engine">D</button>
-      <div id="engine-dropdown" class="quick-settings-dropdown hidden">
-        <div class="qs-item" data-engine="duckduckgo"><span class="qs-icon">D</span><span class="qs-label">DuckDuckGo</span></div>
-        <div class="qs-item" data-engine="google"><span class="qs-icon">G</span><span class="qs-label">Google</span></div>
-        <div class="qs-item" data-engine="brave"><span class="qs-icon">B</span><span class="qs-label">Brave</span></div>
-        <div class="qs-item" data-engine="startpage"><span class="qs-icon">S</span><span class="qs-label">Startpage</span></div>
-        <div class="qs-item" data-engine="searxng"><span class="qs-icon">X</span><span class="qs-label">SearXNG</span></div>
-      </div>
 
       <div id="search-container" class="url-bar-container">
         <input id="url-input" type="text" placeholder="Search or enter a web address..." autocomplete="off" spellcheck="false">
@@ -100,31 +93,6 @@
       </div>
       <!-- WebContentsView is mounted dynamically below #toolbar when a tab has a URL -->
     </main>
-  </div>
-
-  <!-- Minimal Menu Dropdown -->
-  <div id="quick-settings-dropdown" class="quick-settings-dropdown hidden">
-    <div class="qs-item" data-action="new-tab">
-      <span class="qs-icon">➕</span>
-      <span class="qs-label">New tab</span>
-    </div>
-    <div class="qs-item" data-action="clear-cache">
-      <span class="qs-icon">🧹</span>
-      <span class="qs-label">Free RAM</span>
-    </div>
-    <div class="qs-item" data-action="devtools">
-      <span class="qs-icon">🛠️</span>
-      <span class="qs-label">Developer tools</span>
-    </div>
-    <div class="qs-item" data-action="settings">
-      <span class="qs-icon">⚙️</span>
-      <span class="qs-label">Settings</span>
-    </div>
-    <div class="qs-divider"></div>
-    <div class="qs-item" data-action="about">
-      <span class="qs-icon">⚡</span>
-      <span class="qs-label">About Zar</span>
-    </div>
   </div>
 
   <!-- Downloads UI lives in the anchored bubble (see ui/download-popup.html).

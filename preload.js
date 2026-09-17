@@ -44,6 +44,8 @@ contextBridge.exposeInMainWorld('api', {
   toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),
   toggleDevTools: () => ipcRenderer.send('toggle-devtools'),
   showContextMenu: (tabId) => ipcRenderer.send('show-context-menu', tabId),
+  showQuickMenu: () => ipcRenderer.send('show-quick-menu'),
+  showEngineMenu: () => ipcRenderer.send('show-engine-menu'),
 
   // Event listeners
   onTabCreated: (cb) => ipcRenderer.on('tab-created', (event, data) => cb(data)),

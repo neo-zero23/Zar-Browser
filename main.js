@@ -891,14 +891,16 @@ ipcMain.on('download-cancel', (event, id) => {
   sendToDlUI('download-list', [...activeDownloads.values()].map(x => x.meta));
 });
 
-ipcMain.on('clear-memory', () => {
+function doClearMemory() {
   if (global.gc) {
     global.gc();
   }
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('memory-cleared');
   }
-});
+}
+
+ipcMain.on('clear-memory', () => doClearMemory());
 
 ipcMain.on('show-context-menu', (event, tabId) => {
   const tab = tabs.find(t => t.id === tabId);
@@ -910,6 +912,35 @@ ipcMain.on('show-context-menu', (event, tabId) => {
       { label: 'Close tab', enabled: !tab.pinned, click: () => closeTab(tabId) }
     ] : [])
   ]);
+  menu.popup({ window: mainWindow });
+});
+
+// Native menus render above WebContentsViews (HTML dropdowns can't).
+ipcMain.on('show-quick-menu', () => {
+  const menu = Menu.buildFromTemplate([
+    { label: 'New tab', click: () => createTab('') },
+    { label: 'Free RAM', click: () => doClearMemory() },
+    { label: 'Developer tools', click: () => {
+      const tab = getActiveTab();
+      const wc = tab?.view?.webContents;
+      if (wc && !wc.isDestroyed()) wc.toggleDevTools();
+    } },
+    { label: 'Settings', click: () => createTab('file://' + path.join(__dirname, 'ui', 'settings.html')) },
+    { type: 'separator' },
+    { label: 'About Zar', click: () => createTab('file://' + path.join(__dirname, 'ui', 'about.html')) }
+  ]);
+  menu.popup({ window: mainWindow });
+});
+
+ipcMain.on('show-engine-menu', () => {
+  const menu = Menu.buildFromTemplate(
+    Object.entries(SEARCH_ENGINES).map(([id, e]) => ({
+      label: e.name,
+      type: 'checkbox',
+      checked: settings.searchEngine === id,
+      click: () => { setEngine(id); broadcastSettings(); }
+    }))
+  );
   menu.popup({ window: mainWindow });
 });
 

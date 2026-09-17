@@ -340,21 +340,10 @@ body {
   cursor: default;
 }
 
-/* Engine selector (reuses .quick-settings-dropdown) */
+/* Engine button shows the current engine initial (list is a native menu) */
 .engine-btn {
   font-weight: 800;
   font-size: 14px;
-}
-
-#engine-dropdown {
-  top: 78px;
-  left: 146px;
-  right: auto;
-  width: 190px;
-}
-
-#engine-dropdown .qs-item.active {
-  background-color: rgba(255, 255, 255, 0.08);
 }
 
 /* ⬇ button progress ring (Brave style, UX only, no features) */

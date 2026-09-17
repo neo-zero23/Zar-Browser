@@ -25,7 +25,6 @@ const tabsList = document.getElementById('tabs-list');
 const cleanCacheBtn = document.getElementById('clean-cache-btn');
 
 const quickSettingsBtn = document.getElementById('quick-settings-btn');
-const quickSettingsDropdown = document.getElementById('quick-settings-dropdown');
 
 const homepageOverlay = document.getElementById('homepage-overlay');
 const homepageSearchInput = document.getElementById('homepage-search-input');
@@ -337,42 +336,10 @@ window.api.onMemoryCleared(() => {
 });
 
 // =====================================================================
-// ⚙️ 7. QUICK MENU
+// ⚙️ 7. QUICK MENU (native menu from main: renders above page views)
 // =====================================================================
-quickSettingsBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  quickSettingsDropdown.classList.toggle('hidden');
-});
-
-quickSettingsDropdown.addEventListener('click', (e) => {
-  const item = e.target.closest('.qs-item');
-  if (!item) return;
-  const action = item.dataset.action;
-  quickSettingsDropdown.classList.add('hidden');
-
-  switch (action) {
-    case 'new-tab':
-      window.api.createTab('');
-      break;
-    case 'clear-cache':
-      window.api.clearMemory();
-      break;
-    case 'devtools':
-      window.api.toggleDevTools();
-      break;
-    case 'settings':
-      window.api.openSettings();
-      break;
-    case 'about':
-      window.api.openAbout();
-      break;
-  }
-});
-
-document.addEventListener('click', (e) => {
-  if (!quickSettingsDropdown.classList.contains('hidden') && !quickSettingsDropdown.contains(e.target) && e.target !== quickSettingsBtn) {
-    quickSettingsDropdown.classList.add('hidden');
-  }
+quickSettingsBtn.addEventListener('click', () => {
+  window.api.showQuickMenu();
 });
 
 // =====================================================================
@@ -495,36 +462,18 @@ window.api.onDownloadDone(() => {
 });
 
 // =====================================================================
-// 🔍 10. ENGINE SELECTOR (D=DDG default, G, B, S, X)
+// 🔍 10. ENGINE SELECTOR (letter = current engine; list = native menu)
 // =====================================================================
 const engineBtn = document.getElementById('engine-btn');
-const engineDropdown = document.getElementById('engine-dropdown');
 const ENGINE_INITIALS = { duckduckgo: 'D', google: 'G', brave: 'B', startpage: 'S', searxng: 'X' };
 
 function paintEngine(id) {
   engineBtn.textContent = ENGINE_INITIALS[id] || 'D';
-  engineDropdown.querySelectorAll('.qs-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.engine === id);
-  });
 }
 
-engineBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  engineDropdown.classList.toggle('hidden');
-});
-
-engineDropdown.addEventListener('click', (e) => {
-  const item = e.target.closest('.qs-item');
-  if (!item) return;
-  engineDropdown.classList.add('hidden');
-  window.api.setSearchEngine(item.dataset.engine);
+engineBtn.addEventListener('click', () => {
+  window.api.showEngineMenu();
 });
 
 window.api.onSearchEngineChanged((id) => paintEngine(id));
 window.api.getSearchEngine().then((id) => paintEngine(id)).catch(() => paintEngine('duckduckgo'));
-
-document.addEventListener('click', (e) => {
-  if (!engineDropdown.classList.contains('hidden') && !engineDropdown.contains(e.target) && e.target !== engineBtn) {
-    engineDropdown.classList.add('hidden');
-  }
-});

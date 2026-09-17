@@ -38,17 +38,6 @@ let tabs = [];
 let activeTabId = null;
 let adBlocker = null;
 
-// Clipboard (incl. images) is off by default in Electron. Allow clipboard
-// permissions on the Zar partition; deny the rest (no notification/media popups).
-// NOTE: unlike the draft, this must target the tab's session (persist:zar),
-// not the default session, or copy/paste in pages still fails.
-session.fromPartition(PARTITION).setPermissionRequestHandler((webContents, permission, callback) => {
-  if (permission === 'clipboard-read' || permission === 'clipboard-sanitized-write') {
-    return callback(true);
-  }
-  callback(false);
-});
-
 // =====================================================================
 // 🛡️ AD-BLOCKER (@ghostery/adblocker-electron, disk cache)
 // API igual que @cliqz (fromLists/fromCached/serialize/deserialize).
@@ -930,6 +919,15 @@ ipcMain.on('show-context-menu', (event, tabId) => {
 app.whenReady().then(async () => {
   ZarDB.init();
   loadSettings();
+  // Clipboard (incl. images) is off by default in Electron. Allow clipboard
+  // permissions on the Zar partition; deny the rest (no notification/media popups).
+  // Must run after ready: session can't be touched at module top.
+  session.fromPartition(PARTITION).setPermissionRequestHandler((webContents, permission, callback) => {
+    if (permission === 'clipboard-read' || permission === 'clipboard-sanitized-write') {
+      return callback(true);
+    }
+    callback(false);
+  });
   if (settings.adblockEnabled) initAdBlocker();
   applyDiscardingSettings();
   initDownloads();

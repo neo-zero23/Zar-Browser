@@ -47,19 +47,29 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           DEB_FILE=$(ls dist/*.deb | head -1)
-          docker run --rm -v $PWD:/host voidlinux/voidlinux /bin/sh -c "
+          docker run --rm -e VERSION=$VERSION -v $PWD:/host voidlinux/voidlinux /bin/sh -c "
+            echo 'repository=https://repo-default.voidlinux.org/current' > /etc/xbps.d/00-repository-main.conf
             xbps-install -Sy xbps binutils xz zstd
             mkdir -p /tmp/zar-build
             cd /tmp && ar x /host/$DEB_FILE
-            tar -xf data.tar.zst -C /tmp/zar-build/ 2>/dev/null || tar -xf data.tar.xz -C /tmp/zar-build/ 2>/dev/null || tar -xf data.tar.gz -C /tmp/zar-build/
+            if [ -f data.tar.zst ]; then
+              tar -xf data.tar.zst -C /tmp/zar-build/
+            elif [ -f data.tar.xz ]; then
+              tar -xf data.tar.xz -C /tmp/zar-build/
+            elif [ -f data.tar.gz ]; then
+              tar -xf data.tar.gz -C /tmp/zar-build/
+            else
+              echo 'No data.tar.* found in .deb'
+              exit 1
+            fi
             xbps-create \
-              --architecture x86_64 \
-              --name zar-browser \
-              --version ${VERSION}_1 \
-              --short-desc 'Minimalist Chromium-based browser' \
-              --dependencies 'gtk+3 libnotify nss libXScrnSaver libXtst xdg-utils at-spi2-core util-linux libsecret' \
-              --homepage 'https://github.com/neo-zero23/Zar-Browser' \
-              --license 'MPL-2.0' \
+              -A x86_64 \
+              -n \"zar-browser-${VERSION}_1\" \
+              -s 'Minimalist Chromium-based browser' \
+              -D 'gtk+3 libnotify nss libXScrnSaver libXtst xdg-utils at-spi2-core util-linux libsecret' \
+              -H 'https://github.com/neo-zero23/Zar-Browser' \
+              -l 'MPL-2.0' \
+              -m 'neo-zero23 <neo-zero23@users.noreply.github.com>' \
               -o /host/dist/zar-browser-${VERSION}_1.x86_64.xbps \
               /tmp/zar-build
           "

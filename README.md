@@ -1,4 +1,4 @@
-# ⚡ Zar Browser v1.1.1 (ultra-light)
+# ⚡ Zar Browser v1.2.0 (ultra-light)
 
 <img width="356" height="356" alt="Captura de pantalla_20260914_070146" src="https://github.com/user-attachments/assets/70205ccf-3f1d-438d-a982-5032b5cad62f" />
 

@@ -26,7 +26,7 @@
 </head>
 <body>
   <div id="dl-popup" class="quick-settings-dropdown">
-    <div id="dl-head"><span>Downloads</span><button id="dl-close" class="tab-close" title="Close">✕</button></div>
+    <div id="dl-head"><span>Downloads</span><button id="dl-close" class="tab-close" title="Close"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M5.293 5.293a1 1 0 0 1 1.414 0L12 10.586l5.293-5.293a1 1 0 1 1 1.414 1.414L13.414 12l5.293 5.293a1 1 0 0 1-1.414 1.414L12 13.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L10.586 12 5.293 6.707a1 1 0 0 1 0-1.414"/></svg></button></div>
     <div class="qs-divider"></div>
     <div id="dl-list"><div class="qs-item"><span class="qs-label">No downloads</span></div></div>
     <div class="qs-divider"></div>
@@ -54,7 +54,7 @@
       const pct = d.total > 0 ? Math.round((d.received / d.total) * 100) : 0;
       const row = document.createElement('div');
       row.className = 'qs-item';
-      row.innerHTML = `<div class="dl-row"><div class="dl-top"><span class="dl-name qs-label">${esc(d.name)} — ${pct}%</span><button class="tab-close" title="Cancel">✕</button></div><div class="dl-bar"><div class="dl-fill" style="width:${pct}%"></div></div></div>`;
+      row.innerHTML = `<div class="dl-row"><div class="dl-top"><span class="dl-name qs-label">${esc(d.name)} — ${pct}%</span><button class="tab-close" title="Cancel"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M5.293 5.293a1 1 0 0 1 1.414 0L12 10.586l5.293-5.293a1 1 0 1 1 1.414 1.414L13.414 12l5.293 5.293a1 1 0 0 1-1.414 1.414L12 13.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L10.586 12 5.293 6.707a1 1 0 0 1 0-1.414"/></svg></button></div><div class="dl-bar"><div class="dl-fill" style="width:${pct}%"></div></div></div>`;
       row.querySelector('button').addEventListener('click', () => window.api.cancelDownload(d.id));
       list.appendChild(row);
     }

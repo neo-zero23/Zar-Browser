@@ -24,8 +24,12 @@
         <button id="add-tab-btn" class="titlebar-btn" title="New tab (Ctrl+T)">+</button>
       </div>
       <div class="window-controls">
-        <button id="win-minimize" class="win-btn" title="Minimize">—</button>
-        <button id="win-maximize" class="win-btn" title="Maximize">🗖</button>
+        <button id="win-minimize" class="win-btn" title="Minimize">
+          <svg width="12" height="12" viewBox="0 0 52 52" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M50 48.5c0 .8-.7 1.5-1.5 1.5h-45c-.8 0-1.5-.7-1.5-1.5v-3c0-.8.7-1.5 1.5-1.5h45c.8 0 1.5.7 1.5 1.5z"/></svg>
+        </button>
+        <button id="win-maximize" class="win-btn" title="Maximize">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        </button>
         <button id="win-close" class="win-btn win-btn-close" title="Close">✕</button>
       </div>
     </header>
@@ -52,10 +56,12 @@
         <div id="loading-progress" class="progress-bar-hidden"></div>
       </div>
 
-      <button id="clean-cache-btn" class="nav-btn clean-btn" title="Free RAM">🧹</button>
+      <button id="clean-cache-btn" class="nav-btn clean-btn" title="Free RAM">
+        <svg width="16" height="16" viewBox="0 -1.43 122.88 122.88" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M110.97 1.27 70.02 42.73l10.67 10.36 41.25-41.56c3.64-7.83-4.02-14.38-10.97-10.26M54.04 46.81c.4-.31.81-.58 1.22-.81l.15-.08c2.35-1.28 4.81-1.24 7.39.53l7.17 6.98.11.11 6.6 6.42c2.73 2.78 3.34 5.88 1.83 9.31l-19.35 50.75C24.02 112.99-.34 87.94 0 49.73c19.23 5.62 37.75 7.46 54.04-2.92" fill-rule="evenodd" clip-rule="evenodd"/></svg>
+      </button>
       <button id="dl-btn" class="nav-btn" title="Active downloads">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M11 3h2v9.586l2.293-2.293 1.414 1.414L12 16.414l-4.707-4.707 1.414-1.414L11 12.586V3zM5 19h14v2H5z"/>
+          <path fill-rule="evenodd" d="M22 16v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4h2v4h16v-4zm-9-3.414 3.293-3.293 1.414 1.414L12 16.414l-5.707-5.707 1.414-1.414L11 12.586V2h2z"/>
         </svg>
         <svg id="dl-ring" class="dl-ring hidden" viewBox="0 0 28 28" width="28" height="28">
           <circle id="dl-ring-circle" cx="14" cy="14" r="12" fill="none" stroke="var(--accent-red)" stroke-width="2" stroke-dasharray="75.4" stroke-dashoffset="75.4" transform="rotate(-90 14 14)"/>

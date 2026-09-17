@@ -172,7 +172,7 @@ window.api.onTabCreated(({ tabId, url, title, pinned }) => {
     <img class="tab-favicon" alt="">
     <span class="tab-title-text">${title || 'New tab'}</span>
     <span class="tab-pin">📌</span>
-    <button class="tab-close" title="Close tab">✕</button>
+    <button class="tab-close" title="Close tab"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M5.293 5.293a1 1 0 0 1 1.414 0L12 10.586l5.293-5.293a1 1 0 1 1 1.414 1.414L13.414 12l5.293 5.293a1 1 0 0 1-1.414 1.414L12 13.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L10.586 12 5.293 6.707a1 1 0 0 1 0-1.414"/></svg></button>
   `;
 
   const domain = extractDomain(url);
@@ -185,7 +185,7 @@ window.api.onTabCreated(({ tabId, url, title, pinned }) => {
   }
 
   tabEl.addEventListener('click', (e) => {
-    if (e.target.classList.contains('tab-close')) {
+    if (e.target.closest('.tab-close')) {
       e.stopPropagation();
       if (!tabData[tabId]?.pinned) {
         window.api.closeTab(tabId);
@@ -328,10 +328,10 @@ cleanCacheBtn.addEventListener('click', () => {
 });
 
 window.api.onMemoryCleared(() => {
-  const prevText = cleanCacheBtn.textContent;
+  const prevHtml = cleanCacheBtn.innerHTML;
   cleanCacheBtn.textContent = '✨';
   setTimeout(() => {
-    cleanCacheBtn.textContent = prevText;
+    cleanCacheBtn.innerHTML = prevHtml;
   }, 1000);
 });
 

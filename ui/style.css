@@ -80,15 +80,14 @@ body {
 
 .zar-logo {
   margin-right: 12px;
-  font-weight: 900;
-  font-size: 14px;
-  letter-spacing: 2px;
-  color: var(--text-primary);
   cursor: default;
+  display: flex;
+  align-items: center;
 }
 
-.zar-red {
-  color: #ededed; /* was red: branding moved to gray (revert if wanted) */
+.zar-logo-icon {
+  width: 20px;
+  height: 20px;
 }
 
 #tabs-list {

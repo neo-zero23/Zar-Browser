@@ -339,9 +339,9 @@ window.api.onMemoryCleared(() => {
 // ⚙️ 7. QUICK MENU (native menu from main: renders above page views)
 // =====================================================================
 quickSettingsBtn.addEventListener('click', () => {
-  // Anchored one button-size below the ⋮ button
+  // Anchored just below the ⋮ button
   const r = quickSettingsBtn.getBoundingClientRect();
-  window.api.showQuickMenu(window.screenX + r.left, window.screenY + r.bottom + 28);
+  window.api.showQuickMenu(window.screenX + r.left, window.screenY + r.bottom + 4);
 });
 
 // =====================================================================

@@ -62,6 +62,9 @@ jobs:
               echo 'No data.tar.* found in .deb'
               exit 1
             fi
+            # xbps-create 0.60 has no -o: it writes <pkgver>.<arch>.xbps
+            # into CWD, so run it from /host/dist.
+            cd /host/dist
             xbps-create \
               -A x86_64 \
               -n \"zar-browser-${VERSION}_1\" \
@@ -70,7 +73,6 @@ jobs:
               -H 'https://github.com/neo-zero23/Zar-Browser' \
               -l 'MPL-2.0' \
               -m 'neo-zero23 <neo-zero23@users.noreply.github.com>' \
-              -o /host/dist/zar-browser-${VERSION}_1.x86_64.xbps \
               /tmp/zar-build
           "
 

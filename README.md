@@ -3,7 +3,7 @@
 <img width="356" height="356" alt="Captura de pantalla_20260914_070146" src="https://github.com/user-attachments/assets/70205ccf-3f1d-438d-a982-5032b5cad62f" />
 
 
-Minimal fork of Neutron. Philosophy: "Optimization before beauty." Zero customization. only speed.
+Philosophy: "Optimization before beauty." Zero customization. only speed.
 
 
 

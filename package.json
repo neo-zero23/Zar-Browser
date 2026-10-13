@@ -74,7 +74,7 @@
     "electron-builder": "^25.1.8"
   },
   "dependencies": {
-    "@ghostery/adblocker-electron": "^2.18.2",
+    "@ghostery/adblocker-electron": "^2.20.1",
     "cross-fetch": "^4.1.0"
   }
 }
